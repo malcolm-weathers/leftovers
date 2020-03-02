@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:mmo_foodapp/main.dart';
+import 'package:mmo_foodapp/auth.dart';
 
 class ViewListing extends StatefulWidget {
   String _email, _name, _sex;
@@ -15,6 +17,7 @@ class ViewListingState extends State<ViewListing> {
   String _email, _name, _sex;
   int _age;
   var _listing;
+  var dbHandler = new Db();
 
   ViewListingState(this._email, this._name, this._sex, this._age, this._listing);
 
@@ -46,12 +49,49 @@ class ViewListingState extends State<ViewListing> {
                 ),
                 Text(
                   'Latitude: ${_listing["location"]["latitude"]}\nLongitude: ${_listing["location"]["longitude"]}'
+                ),
+                SizedBox(height: 50.0),
+                FlatButton(
+                  child: Text(
+                    'DELETE'
+                  ),
+                  onPressed: () {
+                    _showDialog(context, 'Are you sure?', 'Once a listing is deleted, you cannot get it back.');
+                  }
                 )
               ],
             )
 
           ]
         )
+    );
+  }
+
+  void _showDialog(BuildContext context, String title, String body) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: new Text(title),
+            content: new Text(body),
+            actions: <Widget>[
+              new FlatButton(
+                child: new Text('Delete'),
+                onPressed: () {
+                  dbHandler.deleteListing(_listing.documentID);
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => Home(_email, _name, _sex, _age)), (Route route) => false);
+                }
+              ),
+              new RaisedButton(
+                child: new Text('Cancel'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        }
     );
   }
 }

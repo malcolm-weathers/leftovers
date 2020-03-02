@@ -38,7 +38,12 @@ class Db {
   Future<List<DocumentSnapshot>> getListings(String email) async {
     var result = await Firestore.instance.collection('listings').where('email', isEqualTo: email).getDocuments();
     print('returning ${result.documents}');
+    print('0 is ${result.documents[0].documentID}');
     return result.documents;
+  }
+
+  void deleteListing(String docID) async {
+    await Firestore.instance.collection('listings').document(docID).delete();
   }
 
   void setListing(String email, String title, String descr, int quantity, int limit, double lat, double lon) async {

@@ -161,7 +161,6 @@ class HomeState extends State<Home> {
     dbHandler.getListings(_email).then((List<DocumentSnapshot> list){
       print('Inside listings handler');
       _listings = list;
-      print('${list[0].data}');
       setState(() {
 
       });
@@ -178,19 +177,31 @@ class HomeState extends State<Home> {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          Align(
-            alignment: Alignment.topRight,
-            child: IconButton(
-              icon: Icon(
-                Icons.settings,
-                color: Colors.blue,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              FlatButton(
+                child: Text(
+                  'LOGOUT'
+                ),
+                onPressed: () {
+                  Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => Root()), (Route route) => false);
+                }
               ),
-              onPressed: (){
-                print('Config!');
-                Navigator.push(context, new MaterialPageRoute(builder: (context) => new Config(_email, _age, _name, _sex)));
-              },
-            ),
+              IconButton(
+                icon: Icon(
+                  Icons.settings,
+                  color: Colors.blue,
+                ),
+                onPressed: (){
+                  print('Config!');
+                  Navigator.push(context, new MaterialPageRoute(builder: (context) => new Config(_email, _age, _name, _sex)));
+                },
+              ),
+            ],
           ),
+          SizedBox(height: 50.0),
           Text('Welcome, $_name'),
           RaisedButton(
             onPressed: (){
@@ -217,8 +228,7 @@ class HomeState extends State<Home> {
                 onPressed: (){
                   print('${_listings[index].data}');
                   Navigator.push(context, new MaterialPageRoute(builder: (context) =>
-                  new ViewListing(_email, _name, _sex, _age,
-                      _listings[index])));
+                  new ViewListing(_email, _name, _sex, _age, _listings[index])));
                 },
               );
             }
