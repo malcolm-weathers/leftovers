@@ -205,6 +205,7 @@ class HomeState extends State<Home> {
             ),
 
           ),
+          SizedBox(height: 60.0),
           Text('Welcome, $_name'),
           SizedBox(height: 20.0),
           RaisedButton(
@@ -213,14 +214,30 @@ class HomeState extends State<Home> {
             },
             child: Text('CREATE LISTING')
           ),
-          SizedBox(height: 15.0),
+          SizedBox(height: 60.0),
           Text('Your listings:'),
           ListView.builder(
             shrinkWrap: true,
             itemCount: _listings.length,
             padding: EdgeInsets.only(left: 25.0, right: 25.0, top: 0.0, bottom: 0.0),
             itemBuilder: (BuildContext ctxt, int index) {
-              return new OutlineButton(
+              return new ListTile(
+                title: Text(
+                  _listings[index].data['title'],
+                ),
+                subtitle: Text(
+                  _listings[index].data['descr'],
+                ),
+                trailing: Icon(
+                  Icons.arrow_forward_ios,
+                ),
+                onTap: () {
+                  print('${_listings[index].data}');
+                  Navigator.push(context, new MaterialPageRoute(builder: (context) =>
+                  new ViewListing(_email, _name, _sex, _age, _listings[index])));
+                }
+              );
+              /*return new OutlineButton(
                 child: new Text(
                   _listings[index].data['title'],
                   style: TextStyle(
@@ -234,7 +251,7 @@ class HomeState extends State<Home> {
                   Navigator.push(context, new MaterialPageRoute(builder: (context) =>
                   new ViewListing(_email, _name, _sex, _age, _listings[index])));
                 },
-              );
+              );*/
             }
           ),
         ]

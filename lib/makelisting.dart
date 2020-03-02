@@ -42,7 +42,6 @@ class MakeListingState extends State<MakeListing> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Create listing'),
-        centerTitle: true,
       ),
       body: ListView(
         shrinkWrap: true,
