@@ -175,34 +175,38 @@ class HomeState extends State<Home> {
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
+        //crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              FlatButton(
-                child: Text(
-                  'LOGOUT'
+          Align(
+            alignment: Alignment.topCenter,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                FlatButton(
+                    child: Text(
+                        'LOGOUT'
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => Root()), (Route route) => false);
+                    }
                 ),
-                onPressed: () {
-                  Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => Root()), (Route route) => false);
-                }
-              ),
-              IconButton(
-                icon: Icon(
-                  Icons.settings,
-                  color: Colors.blue,
+                IconButton(
+                  icon: Icon(
+                    Icons.settings,
+                    color: Colors.blue,
+                  ),
+                  onPressed: (){
+                    print('Config!');
+                    Navigator.push(context, new MaterialPageRoute(builder: (context) => new Config(_email, _age, _name, _sex)));
+                  },
                 ),
-                onPressed: (){
-                  print('Config!');
-                  Navigator.push(context, new MaterialPageRoute(builder: (context) => new Config(_email, _age, _name, _sex)));
-                },
-              ),
-            ],
+              ],
+            ),
+
           ),
-          SizedBox(height: 50.0),
           Text('Welcome, $_name'),
+          SizedBox(height: 20.0),
           RaisedButton(
             onPressed: (){
               Navigator.push(context, new MaterialPageRoute(builder: (context) => new MakeListing(_email, _name, _sex, _age)));
