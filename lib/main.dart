@@ -218,7 +218,7 @@ class HomeState extends State<Home> {
                   print('${_listings[index].data}');
                   Navigator.push(context, new MaterialPageRoute(builder: (context) =>
                   new ViewListing(_email, _name, _sex, _age,
-                      _listings[index]['title'], _listings[index]['descr'])));
+                      _listings[index])));
                 },
               );
             }
