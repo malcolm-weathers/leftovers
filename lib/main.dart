@@ -216,7 +216,9 @@ class HomeState extends State<Home> {
                 shape: ContinuousRectangleBorder(),
                 onPressed: (){
                   print('${_listings[index].data}');
-                  Navigator.push(context, new MaterialPageRoute(builder: (context) => new ViewListing(_email, _name, _sex, _age, _listings[index]['title'])));
+                  Navigator.push(context, new MaterialPageRoute(builder: (context) =>
+                  new ViewListing(_email, _name, _sex, _age,
+                      _listings[index]['title'], _listings[index]['descr'])));
                 },
               );
             }
