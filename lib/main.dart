@@ -5,6 +5,7 @@ import 'package:mmo_foodapp/auth.dart';
 import 'package:mmo_foodapp/config.dart';
 import 'package:mmo_foodapp/makelisting.dart';
 import 'package:mmo_foodapp/register.dart';
+import 'package:mmo_foodapp/viewlisting.dart';
 
 void main() => runApp(MyApp());
 
@@ -215,6 +216,7 @@ class HomeState extends State<Home> {
                 shape: ContinuousRectangleBorder(),
                 onPressed: (){
                   print('${_listings[index].data}');
+                  Navigator.push(context, new MaterialPageRoute(builder: (context) => new ViewListing(_email, _name, _sex, _age, _listings[index]['title'])));
                 },
               );
             }
