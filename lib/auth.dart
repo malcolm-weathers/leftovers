@@ -46,6 +46,11 @@ class Db {
     await Firestore.instance.collection('listings').document(docID).delete();
   }
 
+  Future<int> setListing2(String id, Map<String, dynamic> data) async {
+    await Firestore.instance.collection('listings').document(id).setData(data);
+    return 0;
+  }
+
   void setListing(String email, String title, String descr, int quantity, int limit, double lat, double lon) async {
     await Firestore.instance.collection('listings').document().setData({
       'email': email,

@@ -223,10 +223,10 @@ class HomeState extends State<Home> {
             itemBuilder: (BuildContext ctxt, int index) {
               return new ListTile(
                 title: Text(
-                  _listings[index].data['title'],
+                  _listings[index]['title'],
                 ),
                 subtitle: Text(
-                  _listings[index].data['descr'],
+                  _listings[index]['descr'],
                 ),
                 trailing: Icon(
                   Icons.arrow_forward_ios,
