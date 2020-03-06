@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:location/location.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:mmo_foodapp/main.dart';
 import 'package:mmo_foodapp/getlocation.dart';
 import 'package:mmo_foodapp/auth.dart';
@@ -19,6 +20,9 @@ class MakeListingState extends State<MakeListing> {
   String _title, _descr;
   int _quantity, _limit;
   double _lat, _lon;
+
+  var _imgs = [];
+
   final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
   var txtLat = TextEditingController();
   var txtLon = TextEditingController();
@@ -122,6 +126,13 @@ class MakeListingState extends State<MakeListing> {
           _time_t = '${tt.hour}:${tt.minute.toString().padLeft(2, "0")} PM';
         }
       });
+  }
+
+  Future getImage() async {
+    var image = await ImagePicker.pickImage(source: ImageSource.gallery);
+    setState(() {
+      _imgs.add(image);
+    });
   }
 
   @override
@@ -310,6 +321,40 @@ class MakeListingState extends State<MakeListing> {
                   ],
                 ),
 
+                SizedBox(height: 25.0),
+                IconButton(
+                  icon: Icon(Icons.camera_alt),
+                  onPressed: getImage,
+                ),
+                /*Image.asset(
+                  _image,
+                  height: 100,
+                  width: 100,
+                ),*/
+                SizedBox(
+                  height: 150,
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _imgs.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return new Container(
+                        padding: EdgeInsets.only(left: 5.0, right: 5.0),
+                        child: Image.file(
+                          _imgs[index],
+                          height: 150,
+                          //width: 150,
+                        )
+
+                      );
+                      return new Image.file(
+                        _imgs[index],
+                        height: 150,
+                        width: 150,
+                      );
+                    }
+                  ),
+                ),
                 SizedBox(height: 25.0),
                 RaisedButton(
                   child: Text('SUBMIT'),
