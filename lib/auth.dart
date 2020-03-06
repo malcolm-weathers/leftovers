@@ -46,7 +46,12 @@ class Db {
     await Firestore.instance.collection('listings').document(docID).delete();
   }
 
-  Future<int> setListing2(String id, Map<String, dynamic> data) async {
+  Future<Map<String, dynamic>> getListing(String id) async {
+    var x = await Firestore.instance.collection('listings').document(id).get();
+    return Map<String, dynamic>.from(x.data);
+  }
+
+  Future<int> setListingMap(String id, Map<String, dynamic> data) async {
     await Firestore.instance.collection('listings').document(id).setData(data);
     return 0;
   }

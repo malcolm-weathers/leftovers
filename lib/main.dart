@@ -234,7 +234,7 @@ class HomeState extends State<Home> {
                 onTap: () {
                   print('${_listings[index].data}');
                   Navigator.push(context, new MaterialPageRoute(builder: (context) =>
-                  new ViewListing(_email, _name, _sex, _age, _listings[index])));
+                  new ViewListing(_email, _name, _sex, _age, _listings[index].documentID)));
                 }
               );
               /*return new OutlineButton(
