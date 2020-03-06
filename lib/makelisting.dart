@@ -24,17 +24,104 @@ class MakeListingState extends State<MakeListing> {
   var txtLon = TextEditingController();
   var dbHandler = new Db();
 
+  String _time_s, _time_t;
+
+  DateTime selectedDate_s = DateTime.now();
+  DateTime selectedDate_t = DateTime.now();
+  TimeOfDay selectedTime_s = TimeOfDay.now();
+  TimeOfDay selectedTime_t = TimeOfDay.now();
+
   MakeListingState(this._email, this._name, this._sex, this._age);
 
   void _submitForm() {
     final FormState form = _formKey.currentState;
-    if (form.validate()) {
+    if (form.validate() && _time_s != null && _time_t != null) {
       form.save();
-      dbHandler.setListing(_email, _title, _descr, _quantity, _limit, _lat, _lon);
-      _showDialog(context, 'Listing created', '');
+
+      DateTime dss = DateTime.utc(selectedDate_s.year, selectedDate_s.month, selectedDate_s.day,
+      selectedTime_s.hour, selectedTime_s.minute).toLocal().add(Duration(hours:5));
+      DateTime dst = DateTime.utc(selectedDate_t.year, selectedDate_t.month, selectedDate_t.day,
+          selectedTime_t.hour, selectedTime_t.minute).toLocal().add(Duration(hours:5));
+
+      Map<String, dynamic> newListing = {
+        'email': _email,
+        'title': _title,
+        'descr': _descr,
+        'quantity': _quantity,
+        'limit': _limit,
+        'location': {
+          'latitude': _lat,
+          'longitude': _lon
+        },
+        'time_s': dss.millisecondsSinceEpoch / 1000,
+        'time_t': dst.millisecondsSinceEpoch / 1000,
+        'claimed': {},
+      };
+
+      dbHandler.newListingMap(newListing).then((value) {
+        _showDialog(context, 'Listing created', '');
+      });
     } else {
       print('Listing could not be created');
     }
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime picked = await showDatePicker(
+        context: context,
+        initialDate: selectedDate_s,
+        firstDate: DateTime.now().subtract(Duration(days: 1)),// DateTime(2015, 8),
+        lastDate: DateTime.now().add(Duration(days: 7)));
+    if (picked != null && picked != selectedDate_s)
+      setState(() {
+        selectedDate_s = picked;
+      });
+  }
+
+  Future<void> _selectDate_t(BuildContext context) async {
+    final DateTime picked = await showDatePicker(
+        context: context,
+        initialDate: selectedDate_t,
+        firstDate: DateTime.now().subtract(Duration(days: 1)),// DateTime(2015, 8),
+        lastDate: DateTime.now().add(Duration(days: 7)));
+    if (picked != null && picked != selectedDate_t)
+      setState(() {
+        selectedDate_t = picked;
+      });
+  }
+
+  Future<void> _selectTime(BuildContext context) async {
+    final TimeOfDay picked = await showTimePicker(
+      context: context,
+      initialTime: selectedTime_s,
+    );
+    if (picked != null && picked != selectedTime_s)
+      setState(() {
+        selectedTime_s = picked;
+        TimeOfDay tt = selectedTime_s.replacing(hour: selectedTime_s.hourOfPeriod);
+        if (selectedTime_s.hour < 12) {
+          _time_s = '${tt.hour}:${tt.minute.toString().padLeft(2, "0")} AM';
+        } else {
+          _time_s = '${tt.hour}:${tt.minute.toString().padLeft(2, "0")} PM';
+        }
+      });
+  }
+
+  Future<void> _selectTime_t(BuildContext context) async {
+    final TimeOfDay picked = await showTimePicker(
+      context: context,
+      initialTime: selectedTime_t,
+    );
+    if (picked != null && picked != selectedTime_t)
+      setState(() {
+        selectedTime_t = picked;
+        TimeOfDay tt = selectedTime_t.replacing(hour: selectedTime_t.hourOfPeriod);
+        if (selectedTime_t.hour < 12) {
+          _time_t = '${tt.hour}:${tt.minute.toString().padLeft(2, "0")} AM';
+        } else {
+          _time_t = '${tt.hour}:${tt.minute.toString().padLeft(2, "0")} PM';
+        }
+      });
   }
 
   @override
@@ -185,6 +272,44 @@ class MakeListingState extends State<MakeListing> {
                   },
                   child: Text('CURRENT LOCATION')
                 ),
+                SizedBox(height: 7.5),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    IconButton(
+                        icon: Icon(Icons.calendar_today),
+                        onPressed: () => _selectDate(context)
+
+                    ),
+                    IconButton(
+                        icon: Icon(Icons.access_time),
+                        onPressed: () => _selectTime(context)
+                    ),
+                    Text(
+                        '${selectedDate_s.year}/${selectedDate_s.month.toString().padLeft(2, "0")}/${selectedDate_s.day.toString().padLeft(2, "0")} $_time_s'
+                    ),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    IconButton(
+                        icon: Icon(Icons.calendar_today),
+                        onPressed: () => _selectDate_t(context)
+
+                    ),
+                    IconButton(
+                        icon: Icon(Icons.access_time),
+                        onPressed: () => _selectTime_t(context)
+                    ),
+                    Text(
+                        '${selectedDate_t.year}/${selectedDate_t.month.toString().padLeft(2, "0")}/${selectedDate_t.day.toString().padLeft(2, "0")} $_time_t'
+                    ),
+                  ],
+                ),
+
                 SizedBox(height: 25.0),
                 RaisedButton(
                   child: Text('SUBMIT'),

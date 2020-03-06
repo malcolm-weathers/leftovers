@@ -26,13 +26,6 @@ class ViewListingState extends State<ViewListing> {
     this._sex = sex;
     this._age = age;
     this._id = id;
-
-    /*String hours, hourt;
-    var ds = DateTime.fromMillisecondsSinceEpoch(listing["time_s"].seconds*1000).toLocal();
-    _times = '${ds.year}-${ds.month.toString().padLeft(2, '0')}-${ds.day.toString().padLeft(2, '0')} ${ds.hour.toString().padLeft(2, '0')}:${ds.minute.toString().padLeft(2, '0')}';
-    ds = DateTime.fromMillisecondsSinceEpoch(listing["time_t"].seconds*1000).toLocal();
-    _timet = '${ds.year}-${ds.month.toString().padLeft(2, '0')}-${ds.day.toString().padLeft(2, '0')} ${ds.hour.toString().padLeft(2, '0')}:${ds.minute.toString().padLeft(2, '0')}';
-    */
   }
 
   Future<int> _getLD() async {
@@ -44,7 +37,7 @@ class ViewListingState extends State<ViewListing> {
       _remaining -= value['no'];
     });
 
-    DateTime ds = DateTime.fromMillisecondsSinceEpoch(map['time_s'].seconds*1000);
+    DateTime ds = DateTime.fromMillisecondsSinceEpoch(map['time_s'].round()*1000).toLocal();
     TimeOfDay ts = TimeOfDay(hour: ds.hour, minute: ds.minute);
     TimeOfDay ts2 = ts.replacing(hour: ts.hourOfPeriod);
 
@@ -56,7 +49,7 @@ class ViewListingState extends State<ViewListing> {
     }
     _times = '${ds.year}/${ds.month.toString().padLeft(2, '0')}/${ds.day.toString().padLeft(2, '0')} ${ts2.hour}:${ts2.minute.toString().padLeft(2, '0')} $_ampm';
 
-    DateTime dt = DateTime.fromMillisecondsSinceEpoch(map['time_t'].seconds*1000);
+    DateTime dt = DateTime.fromMillisecondsSinceEpoch(map['time_t'].round()*1000).toLocal();
     TimeOfDay tt = TimeOfDay(hour: dt.hour, minute: dt.minute);
     TimeOfDay tt2 = ts.replacing(hour: tt.hourOfPeriod);
 
@@ -66,9 +59,6 @@ class ViewListingState extends State<ViewListing> {
       _ampm = 'PM';
     }
     _timet = '${dt.year}/${dt.month.toString().padLeft(2, '0')}/${dt.day.toString().padLeft(2, '0')} ${tt2.hour}:${tt2.minute.toString().padLeft(2, '0')} $_ampm';
-
-
-
 
     return 0;
   }

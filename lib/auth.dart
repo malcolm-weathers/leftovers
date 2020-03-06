@@ -51,6 +51,11 @@ class Db {
     return Map<String, dynamic>.from(x.data);
   }
 
+  Future<int> newListingMap(Map<String, dynamic> data) async {
+    await Firestore.instance.collection('listings').document().setData(data);
+    return 0;
+  }
+
   Future<int> setListingMap(String id, Map<String, dynamic> data) async {
     await Firestore.instance.collection('listings').document(id).setData(data);
     return 0;
