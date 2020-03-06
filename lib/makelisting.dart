@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:location/location.dart';
 import 'package:image_picker/image_picker.dart';
@@ -35,7 +36,27 @@ class MakeListingState extends State<MakeListing> {
   TimeOfDay selectedTime_s = TimeOfDay.now();
   TimeOfDay selectedTime_t = TimeOfDay.now();
 
-  MakeListingState(this._email, this._name, this._sex, this._age);
+  MakeListingState(String email, String name, String sex, int age) {
+    _email = email;
+    _name = name;
+    _sex = sex;
+    _age = age;
+
+    //selectedTime_t = selectedTime_t.replacing(hour: selectedTime_t.hour + 2);
+    TimeOfDay tt = selectedTime_s.replacing(hour: selectedTime_s.hourOfPeriod);
+
+    if (selectedTime_s.hour < 12) {
+      _time_s = '${tt.hour}:${tt.minute.toString().padLeft(2, "0")} AM';
+    } else {
+      _time_s = '${tt.hour}:${tt.minute.toString().padLeft(2, "0")} PM';
+    }
+    tt = selectedTime_t.replacing(hour: selectedTime_t.hourOfPeriod);
+    if (selectedTime_t.hour < 12) {
+      _time_t = '${tt.hour}:${tt.minute.toString().padLeft(2, "0")} AM';
+    } else {
+      _time_t = '${tt.hour}:${tt.minute.toString().padLeft(2, "0")} PM';
+    }
+  }
 
   void _submitForm() {
     final FormState form = _formKey.currentState;
