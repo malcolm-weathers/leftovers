@@ -27,16 +27,6 @@ class ViewListingState extends State<ViewListing> {
     this._age = age;
     this._id = id;
 
-    //this._listing = dbHandler.getListing(id);
-    /*dbHandler.getListing(_id).then((Map<String, dynamic> value){
-      print('Got $value');
-      _listing = value;
-      this._remaining = _listing["quantity"];
-      _listing['claimed'].forEach((String key, dynamic value){
-        _remaining -= value['no'];
-      });
-    });*/
-
     /*String hours, hourt;
     var ds = DateTime.fromMillisecondsSinceEpoch(listing["time_s"].seconds*1000).toLocal();
     _times = '${ds.year}-${ds.month.toString().padLeft(2, '0')}-${ds.day.toString().padLeft(2, '0')} ${ds.hour.toString().padLeft(2, '0')}:${ds.minute.toString().padLeft(2, '0')}';
@@ -53,6 +43,33 @@ class ViewListingState extends State<ViewListing> {
     _listing['claimed'].forEach((String key, dynamic value){
       _remaining -= value['no'];
     });
+
+    DateTime ds = DateTime.fromMillisecondsSinceEpoch(map['time_s'].seconds*1000);
+    TimeOfDay ts = TimeOfDay(hour: ds.hour, minute: ds.minute);
+    TimeOfDay ts2 = ts.replacing(hour: ts.hourOfPeriod);
+
+    String _ampm;
+    if (ds.hour < 12) {
+      _ampm = 'AM';
+    } else {
+      _ampm = 'PM';
+    }
+    _times = '${ds.year}/${ds.month.toString().padLeft(2, '0')}/${ds.day.toString().padLeft(2, '0')} ${ts2.hour}:${ts2.minute.toString().padLeft(2, '0')} $_ampm';
+
+    DateTime dt = DateTime.fromMillisecondsSinceEpoch(map['time_t'].seconds*1000);
+    TimeOfDay tt = TimeOfDay(hour: dt.hour, minute: dt.minute);
+    TimeOfDay tt2 = ts.replacing(hour: tt.hourOfPeriod);
+
+    if (dt.hour < 12) {
+      _ampm = 'AM';
+    } else {
+      _ampm = 'PM';
+    }
+    _timet = '${dt.year}/${dt.month.toString().padLeft(2, '0')}/${dt.day.toString().padLeft(2, '0')} ${tt2.hour}:${tt2.minute.toString().padLeft(2, '0')} $_ampm';
+
+
+
+
     return 0;
   }
 
