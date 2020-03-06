@@ -133,7 +133,7 @@ class ViewListingState extends State<ViewListing> {
                         SizedBox(height: 20.0),
                         ListView.builder(
                             shrinkWrap: true,
-                            itemCount: 2,//_listing['claimed'].length,
+                            itemCount: _listing['claimed'].length,
                             padding: EdgeInsets.only(left: 25.0, right: 25.0, top: 0.0, bottom: 0.0),
                             itemBuilder: (BuildContext ctxt, int index) {
                               var _u = _listing['claimed'].keys.elementAt(index);
@@ -176,7 +176,11 @@ class ViewListingState extends State<ViewListing> {
                                     child: IconButton(
                                       icon: Icon(Icons.cancel),
                                       onPressed: (){
-
+                                        _listing['claimed'].remove(_u);
+                                        dbHandler.setListingMap(_id, _listing).then((value){
+                                          Navigator.of(context).pop();
+                                          Navigator.push(context, new MaterialPageRoute(builder: (context) => new ViewListing(_email, _name, _sex, _age, _id)));
+                                        });
                                       },
                                     ),
                                     visible: _vis,
