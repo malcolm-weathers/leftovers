@@ -6,6 +6,7 @@ import 'package:mmo_foodapp/config.dart';
 import 'package:mmo_foodapp/makelisting.dart';
 import 'package:mmo_foodapp/register.dart';
 import 'package:mmo_foodapp/viewlisting.dart';
+import 'package:mmo_foodapp/search.dart';
 
 void main() => runApp(MyApp());
 
@@ -158,12 +159,10 @@ class HomeState extends State<Home> {
     this._age = age;
 
     print('Trying to get listings');
-    dbHandler.getListings(_email).then((List<DocumentSnapshot> list){
-      print('Inside listings handler');
-      _listings = list;
-      setState(() {
 
-      });
+    dbHandler.getListings(_email).then((List<dynamic> list){
+      _listings = list;
+      setState((){});
     });
   }
 
@@ -173,8 +172,10 @@ class HomeState extends State<Home> {
       appBar: AppBar(
         title: Text('Leftovers'),
       ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      body: ListView(
+        shrinkWrap: true,
+          padding: EdgeInsets.all(15.0),//Column(
+        //mainAxisAlignment: MainAxisAlignment.center,
         //crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           Align(
@@ -205,7 +206,7 @@ class HomeState extends State<Home> {
             ),
 
           ),
-          SizedBox(height: 60.0),
+          SizedBox(height: 20.0),
           Text('Welcome, $_name'),
           SizedBox(height: 20.0),
           RaisedButton(
@@ -214,46 +215,48 @@ class HomeState extends State<Home> {
             },
             child: Text('CREATE LISTING')
           ),
-          SizedBox(height: 60.0),
-          Text('Your listings:'),
-          ListView.builder(
-            shrinkWrap: true,
-            itemCount: _listings.length,
-            padding: EdgeInsets.only(left: 25.0, right: 25.0, top: 0.0, bottom: 0.0),
-            itemBuilder: (BuildContext ctxt, int index) {
-              return new ListTile(
-                title: Text(
-                  _listings[index]['title'],
-                ),
-                subtitle: Text(
-                  _listings[index]['descr'],
-                ),
-                trailing: Icon(
-                  Icons.arrow_forward_ios,
-                ),
-                onTap: () {
-                  print('${_listings[index].data}');
-                  Navigator.push(context, new MaterialPageRoute(builder: (context) =>
-                  new ViewListing(_email, _name, _sex, _age, _listings[index].documentID)));
-                }
-              );
-              /*return new OutlineButton(
-                child: new Text(
-                  _listings[index].data['title'],
-                  style: TextStyle(
-                    color: Colors.blue
-                  )
-                ),
-                borderSide: BorderSide(color: Colors.blue),
-                shape: ContinuousRectangleBorder(),
-                onPressed: (){
-                  print('${_listings[index].data}');
-                  Navigator.push(context, new MaterialPageRoute(builder: (context) =>
-                  new ViewListing(_email, _name, _sex, _age, _listings[index])));
-                },
-              );*/
-            }
+          RaisedButton(
+            onPressed: (){
+              Navigator.push(context, new MaterialPageRoute(builder: (context) => new Search(_email, _name, _sex, _age)));
+            },
+            child: Text('FIND FOOD')
           ),
+          SizedBox(height: 20.0),
+          Text('Your posted listings:'),
+          Container(
+            height: 200,
+            child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: _listings.length,
+                padding: EdgeInsets.only(left: 25.0, right: 25.0, top: 0.0, bottom: 0.0),
+                itemBuilder: (BuildContext ctxt, int index) {
+                  return new ListTile(
+                      title: Text(
+                        _listings[index]['title'],
+                      ),
+                      subtitle: Text(
+                        _listings[index]['descr'],
+                      ),
+                      trailing: Icon(
+                        Icons.arrow_forward_ios,
+                      ),
+                      onTap: () {
+                        print('${_listings[index].data}');
+                        Navigator.push(context, new MaterialPageRoute(builder: (context) =>
+                        new ViewListing(_email, _name, _sex, _age, _listings[index].documentID)));
+                      }
+                  );
+                }
+            ),
+          ),
+          SizedBox(height: 20.0),
+          Text('Food you have claimed:'),
+          Container(
+            height: 200,
+            /*child: ListView.builder(
+
+            )*/
+          )
         ]
       )
     );

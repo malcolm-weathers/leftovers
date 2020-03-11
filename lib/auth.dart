@@ -35,10 +35,8 @@ class Db {
     await Firestore.instance.collection('users').document(emailFixed).setData(data);
   }
 
-  Future<List<DocumentSnapshot>> getListings(String email) async {
+  Future<List<dynamic>> getListings(String email) async {
     var result = await Firestore.instance.collection('listings').where('email', isEqualTo: email).getDocuments();
-    print('returning ${result.documents}');
-    print('0 is ${result.documents[0].documentID}');
     return result.documents;
   }
 
@@ -73,5 +71,26 @@ class Db {
         'longitude': lon
       }
     });
+  }
+
+  Future<List<dynamic>> getByLocation(double lat, double lon, double rad) async {
+    double _lat0 = lat - (rad/69.2), _lat1 = lat + (rad/69.2), _lon0 = lon - (rad/69.2), _lon1 = lon + (rad/69.2);
+    print('Retrieving locations w/in $_lat0 to $_lat1 N and $_lon0 to $_lon1 east');
+
+    var x = await Firestore.instance.collection('listings')
+        .where('location.latitude', isGreaterThanOrEqualTo: _lat0)
+        .where('location.latitude', isLessThanOrEqualTo: _lat1)
+        //.where('location.longitude', isLessThanOrEqualTo: _lon0)
+        //.where('location.longitude', isGreaterThanOrEqualTo: _lon1)
+        .getDocuments();
+    List<dynamic> results = [];
+    x.documents.forEach((var item){
+      double _thisLon = item.data['location']['longitude'];
+      if (_thisLon <= _lon1 && _thisLon >= _lon0) {
+        results.add(item.data);
+      }
+    });
+
+    return results;
   }
 }
