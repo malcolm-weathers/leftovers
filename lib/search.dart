@@ -126,7 +126,7 @@ class SearchState extends State<Search> {
                           _inRange[index]['title'],
                         ),
                         subtitle: Text(
-                          _inRange[index]['descr'],
+                          '(${_inRange[index]["distance"]} miles) ${_inRange[index]["descr"]}'
                         ),
                         trailing: Icon(
                           Icons.arrow_forward_ios,

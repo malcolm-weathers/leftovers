@@ -80,14 +80,14 @@ class Db {
     var x = await Firestore.instance.collection('listings')
         .where('location.latitude', isGreaterThanOrEqualTo: _lat0)
         .where('location.latitude', isLessThanOrEqualTo: _lat1)
-        //.where('location.longitude', isLessThanOrEqualTo: _lon0)
-        //.where('location.longitude', isGreaterThanOrEqualTo: _lon1)
         .getDocuments();
     List<dynamic> results = [];
     x.documents.forEach((var item){
-      double _thisLon = item.data['location']['longitude'];
-      if (_thisLon <= _lon1 && _thisLon >= _lon0) {
-        results.add(item.data);
+      var _d = item.data;
+      double _dist = (lat - _d['location']['latitude']).abs() / 69.2 + (lat - _d['location']['longitude']).abs() / 69.2;
+      if (_dist < rad) {
+        _d['distance'] = double.parse(_dist.toStringAsFixed(1));
+        results.add(_d);
       }
     });
 
