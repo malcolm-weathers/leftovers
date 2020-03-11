@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mmo_foodapp/auth.dart';
 import 'package:mmo_foodapp/config.dart';
 import 'package:mmo_foodapp/makelisting.dart';

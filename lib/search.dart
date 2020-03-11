@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:location/location.dart';
 import 'package:mmo_foodapp/getlocation.dart';
 import 'package:mmo_foodapp/auth.dart';
+import 'package:mmo_foodapp/viewforeign.dart';
 
 class Search extends StatefulWidget {
   final String _email, _name, _sex;
@@ -16,7 +17,6 @@ class SearchState extends State<Search> {
   String _email, _name, _sex;
   int _age;
 
-  double _lat, _lon, _rad;
   var _txtLat = TextEditingController();
   var _txtLon = TextEditingController();
   var _txtRad = TextEditingController(text: '5.0');
@@ -132,10 +132,9 @@ class SearchState extends State<Search> {
                           Icons.arrow_forward_ios,
                         ),
                         onTap: () {
-                          /*print('${_inRange[index].data}');
                           Navigator.push(context, new MaterialPageRoute(builder: (context) =>
-                          new ViewListing(_email, _name, _sex, _age, _listings[index].documentID)));
-                        */}
+                          new ViewForeign(_email, _name, _sex, _age, _inRange[index]['id'], _inRange[index])));
+                        }
                     );
                   }
               ),

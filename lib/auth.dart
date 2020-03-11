@@ -84,6 +84,7 @@ class Db {
     List<dynamic> results = [];
     x.documents.forEach((var item){
       var _d = item.data;
+      _d['id'] = item.documentID;
       double _dist = (lat - _d['location']['latitude']).abs() / 69.2 + (lat - _d['location']['longitude']).abs() / 69.2;
       if (_dist < rad) {
         _d['distance'] = double.parse(_dist.toStringAsFixed(1));
