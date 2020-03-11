@@ -73,7 +73,7 @@ class RootState extends State<Root> {
                       width: 150
                   ),
                   Text(
-                      'v0-20200227'
+                      'v0-20200311'
                   ),
                   SizedBox(height:15),
                   TextFormField(
@@ -134,8 +134,8 @@ class RootState extends State<Root> {
 }
 
 class Home extends StatefulWidget {
-  String _email, _name, _sex;
-  int _age;
+  final String _email, _name, _sex;
+  final int _age;
 
   Home(this._email, this._name, this._sex, this._age);
 

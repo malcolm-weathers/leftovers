@@ -7,8 +7,8 @@ import 'package:mmo_foodapp/getlocation.dart';
 import 'package:mmo_foodapp/auth.dart';
 
 class MakeListing extends StatefulWidget {
-  String _email, _name, _sex;
-  int _age;
+  final String _email, _name, _sex;
+  final int _age;
 
   MakeListing(this._email, this._name, this._sex, this._age);
   @override
@@ -29,44 +29,43 @@ class MakeListingState extends State<MakeListing> {
   var txtLon = TextEditingController();
   var dbHandler = new Db();
 
-  String _time_s, _time_t;
+  String _timeS, _timeT;
 
-  DateTime selectedDate_s = DateTime.now();
-  DateTime selectedDate_t = DateTime.now();
-  TimeOfDay selectedTime_s = TimeOfDay.now();
-  TimeOfDay selectedTime_t = TimeOfDay.now();
+  DateTime _selectedDateS = DateTime.now();
+  DateTime _selectedDateT = DateTime.now();
+  TimeOfDay _selectedTimeS = TimeOfDay.now();
+  TimeOfDay _selectedTimeT = TimeOfDay.now();
 
   MakeListingState(String email, String name, String sex, int age) {
     _email = email;
     _name = name;
     _sex = sex;
     _age = age;
+    
+    TimeOfDay tt = _selectedTimeS.replacing(hour: _selectedTimeS.hourOfPeriod);
 
-    //selectedTime_t = selectedTime_t.replacing(hour: selectedTime_t.hour + 2);
-    TimeOfDay tt = selectedTime_s.replacing(hour: selectedTime_s.hourOfPeriod);
-
-    if (selectedTime_s.hour < 12) {
-      _time_s = '${tt.hour}:${tt.minute.toString().padLeft(2, "0")} AM';
+    if (_selectedTimeS.hour < 12) {
+      _timeS = '${tt.hour}:${tt.minute.toString().padLeft(2, "0")} AM';
     } else {
-      _time_s = '${tt.hour}:${tt.minute.toString().padLeft(2, "0")} PM';
+      _timeS = '${tt.hour}:${tt.minute.toString().padLeft(2, "0")} PM';
     }
-    tt = selectedTime_t.replacing(hour: selectedTime_t.hourOfPeriod);
-    if (selectedTime_t.hour < 12) {
-      _time_t = '${tt.hour}:${tt.minute.toString().padLeft(2, "0")} AM';
+    tt = _selectedTimeT.replacing(hour: _selectedTimeT.hourOfPeriod);
+    if (_selectedTimeT.hour < 12) {
+      _timeT = '${tt.hour}:${tt.minute.toString().padLeft(2, "0")} AM';
     } else {
-      _time_t = '${tt.hour}:${tt.minute.toString().padLeft(2, "0")} PM';
+      _timeT = '${tt.hour}:${tt.minute.toString().padLeft(2, "0")} PM';
     }
   }
 
   void _submitForm() {
     final FormState form = _formKey.currentState;
-    if (form.validate() && _time_s != null && _time_t != null) {
+    if (form.validate() && _timeS != null && _timeT != null) {
       form.save();
 
-      DateTime dss = DateTime.utc(selectedDate_s.year, selectedDate_s.month, selectedDate_s.day,
-      selectedTime_s.hour, selectedTime_s.minute).toLocal().add(Duration(hours:5));
-      DateTime dst = DateTime.utc(selectedDate_t.year, selectedDate_t.month, selectedDate_t.day,
-          selectedTime_t.hour, selectedTime_t.minute).toLocal().add(Duration(hours:5));
+      DateTime dss = DateTime.utc(_selectedDateS.year, _selectedDateS.month, _selectedDateS.day,
+      _selectedTimeS.hour, _selectedTimeS.minute).toLocal().add(Duration(hours:5));
+      DateTime dst = DateTime.utc(_selectedDateT.year, _selectedDateT.month, _selectedDateT.day,
+          _selectedTimeT.hour, _selectedTimeT.minute).toLocal().add(Duration(hours:5));
 
       Map<String, dynamic> newListing = {
         'email': _email,
@@ -94,57 +93,57 @@ class MakeListingState extends State<MakeListing> {
   Future<void> _selectDate(BuildContext context) async {
     final DateTime picked = await showDatePicker(
         context: context,
-        initialDate: selectedDate_s,
+        initialDate: _selectedDateS,
         firstDate: DateTime.now().subtract(Duration(days: 1)),// DateTime(2015, 8),
         lastDate: DateTime.now().add(Duration(days: 7)));
-    if (picked != null && picked != selectedDate_s)
+    if (picked != null && picked != _selectedDateS)
       setState(() {
-        selectedDate_s = picked;
+        _selectedDateS = picked;
       });
   }
 
-  Future<void> _selectDate_t(BuildContext context) async {
+  Future<void> _selectDateT(BuildContext context) async {
     final DateTime picked = await showDatePicker(
         context: context,
-        initialDate: selectedDate_t,
+        initialDate: _selectedDateT,
         firstDate: DateTime.now().subtract(Duration(days: 1)),// DateTime(2015, 8),
         lastDate: DateTime.now().add(Duration(days: 7)));
-    if (picked != null && picked != selectedDate_t)
+    if (picked != null && picked != _selectedDateT)
       setState(() {
-        selectedDate_t = picked;
+        _selectedDateT = picked;
       });
   }
 
   Future<void> _selectTime(BuildContext context) async {
     final TimeOfDay picked = await showTimePicker(
       context: context,
-      initialTime: selectedTime_s,
+      initialTime: _selectedTimeS,
     );
-    if (picked != null && picked != selectedTime_s)
+    if (picked != null && picked != _selectedTimeS)
       setState(() {
-        selectedTime_s = picked;
-        TimeOfDay tt = selectedTime_s.replacing(hour: selectedTime_s.hourOfPeriod);
-        if (selectedTime_s.hour < 12) {
-          _time_s = '${tt.hour}:${tt.minute.toString().padLeft(2, "0")} AM';
+        _selectedTimeS = picked;
+        TimeOfDay tt = _selectedTimeS.replacing(hour: _selectedTimeS.hourOfPeriod);
+        if (_selectedTimeS.hour < 12) {
+          _timeS = '${tt.hour}:${tt.minute.toString().padLeft(2, "0")} AM';
         } else {
-          _time_s = '${tt.hour}:${tt.minute.toString().padLeft(2, "0")} PM';
+          _timeS = '${tt.hour}:${tt.minute.toString().padLeft(2, "0")} PM';
         }
       });
   }
 
-  Future<void> _selectTime_t(BuildContext context) async {
+  Future<void> _selectTimeT(BuildContext context) async {
     final TimeOfDay picked = await showTimePicker(
       context: context,
-      initialTime: selectedTime_t,
+      initialTime: _selectedTimeT,
     );
-    if (picked != null && picked != selectedTime_t)
+    if (picked != null && picked != _selectedTimeT)
       setState(() {
-        selectedTime_t = picked;
-        TimeOfDay tt = selectedTime_t.replacing(hour: selectedTime_t.hourOfPeriod);
-        if (selectedTime_t.hour < 12) {
-          _time_t = '${tt.hour}:${tt.minute.toString().padLeft(2, "0")} AM';
+        _selectedTimeT = picked;
+        TimeOfDay tt = _selectedTimeT.replacing(hour: _selectedTimeT.hourOfPeriod);
+        if (_selectedTimeT.hour < 12) {
+          _timeT = '${tt.hour}:${tt.minute.toString().padLeft(2, "0")} AM';
         } else {
-          _time_t = '${tt.hour}:${tt.minute.toString().padLeft(2, "0")} PM';
+          _timeT = '${tt.hour}:${tt.minute.toString().padLeft(2, "0")} PM';
         }
       });
   }
@@ -319,7 +318,7 @@ class MakeListingState extends State<MakeListing> {
                         onPressed: () => _selectTime(context)
                     ),
                     Text(
-                        '${selectedDate_s.year}/${selectedDate_s.month.toString().padLeft(2, "0")}/${selectedDate_s.day.toString().padLeft(2, "0")} $_time_s'
+                        '${_selectedDateS.year}/${_selectedDateS.month.toString().padLeft(2, "0")}/${_selectedDateS.day.toString().padLeft(2, "0")} $_timeS'
                     ),
                   ],
                 ),
@@ -329,15 +328,15 @@ class MakeListingState extends State<MakeListing> {
                   children: <Widget>[
                     IconButton(
                         icon: Icon(Icons.calendar_today),
-                        onPressed: () => _selectDate_t(context)
+                        onPressed: () => _selectDateT(context)
 
                     ),
                     IconButton(
                         icon: Icon(Icons.access_time),
-                        onPressed: () => _selectTime_t(context)
+                        onPressed: () => _selectTimeT(context)
                     ),
                     Text(
-                        '${selectedDate_t.year}/${selectedDate_t.month.toString().padLeft(2, "0")}/${selectedDate_t.day.toString().padLeft(2, "0")} $_time_t'
+                        '${_selectedDateT.year}/${_selectedDateT.month.toString().padLeft(2, "0")}/${_selectedDateT.day.toString().padLeft(2, "0")} $_timeT'
                     ),
                   ],
                 ),
@@ -367,11 +366,6 @@ class MakeListingState extends State<MakeListing> {
                           //width: 150,
                         )
 
-                      );
-                      return new Image.file(
-                        _imgs[index],
-                        height: 150,
-                        width: 150,
                       );
                     }
                   ),

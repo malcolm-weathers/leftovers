@@ -1,12 +1,10 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:mmo_foodapp/main.dart';
 import 'package:mmo_foodapp/auth.dart';
 
 class ViewListing extends StatefulWidget {
-  String _email, _name, _sex, _id;
-  int _age;
-  var _listing;
+  final String _email, _name, _sex, _id;
+  final int _age;
 
   ViewListing(this._email, this._name, this._sex, this._age, this._id);
 
@@ -15,7 +13,7 @@ class ViewListing extends StatefulWidget {
 }
 
 class ViewListingState extends State<ViewListing> {
-  String _email, _name, _sex, _id, _times, _timet;
+  String _email, _name, _sex, _id, _timeS, _timeT;
   int _age, _remaining;
   Map<String, dynamic> _listing;
   var dbHandler = new Db();
@@ -34,6 +32,7 @@ class ViewListingState extends State<ViewListing> {
     _listing = map;
     _remaining = map['quantity'];
     _listing['claimed'].forEach((String key, dynamic value){
+      if (_listing['claimed'][key]['status'] != 'cancelled')
       _remaining -= value['no'];
     });
 
@@ -47,7 +46,7 @@ class ViewListingState extends State<ViewListing> {
     } else {
       _ampm = 'PM';
     }
-    _times = '${ds.year}/${ds.month.toString().padLeft(2, '0')}/${ds.day.toString().padLeft(2, '0')} ${ts2.hour}:${ts2.minute.toString().padLeft(2, '0')} $_ampm';
+    _timeS = '${ds.year}/${ds.month.toString().padLeft(2, '0')}/${ds.day.toString().padLeft(2, '0')} ${ts2.hour}:${ts2.minute.toString().padLeft(2, '0')} $_ampm';
 
     DateTime dt = DateTime.fromMillisecondsSinceEpoch(map['time_t'].round()*1000).toLocal();
     TimeOfDay tt = TimeOfDay(hour: dt.hour, minute: dt.minute);
@@ -58,7 +57,7 @@ class ViewListingState extends State<ViewListing> {
     } else {
       _ampm = 'PM';
     }
-    _timet = '${dt.year}/${dt.month.toString().padLeft(2, '0')}/${dt.day.toString().padLeft(2, '0')} ${tt2.hour}:${tt2.minute.toString().padLeft(2, '0')} $_ampm';
+    _timeT = '${dt.year}/${dt.month.toString().padLeft(2, '0')}/${dt.day.toString().padLeft(2, '0')} ${tt2.hour}:${tt2.minute.toString().padLeft(2, '0')} $_ampm';
 
     return 0;
   }
@@ -108,7 +107,7 @@ class ViewListingState extends State<ViewListing> {
                           Icons.access_time,
                         ),
                         Text(
-                          '$_times\n-\n$_timet',
+                          '$_timeS\n-\n$_timeT',
                           textAlign: TextAlign.center,
                         ),
                         SizedBox(height: 10.0),
@@ -128,12 +127,16 @@ class ViewListingState extends State<ViewListing> {
                             itemBuilder: (BuildContext ctxt, int index) {
                               var _u = _listing['claimed'].keys.elementAt(index);
                               Color _color;
-                              bool _vis = true;
-                              if (_listing['claimed'][_u]['done'] == false) {
+                              bool _vis0 = false, _vis1 = false;
+                              if (_listing['claimed'][_u]['status'] == 'reserved') {
                                 _color = Colors.black;
-                              } else {
+                                _vis0 = true;
+                              } else if (_listing['claimed'][_u]['status'] == 'received') {
                                 _color = Colors.green;
-                                _vis = false;
+                                _vis1 = true;
+                              } else if (_listing['claimed'][_u]['status'] == 'cancelled') {
+                                _color = Colors.red;
+                                _vis1 = true;
                               }
                               return new Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -151,29 +154,41 @@ class ViewListingState extends State<ViewListing> {
                                       icon: Icon(Icons.check_circle),
                                       onPressed: (){
                                         //Map<String, dynamic> map = Map<String, dynamic>.from(_listing);
-                                        _listing['claimed'][_u]['done'] = true;
-                                        print('${_listing}');
+                                        _listing['claimed'][_u]['status'] = 'received';
                                         dbHandler.setListingMap(_id, _listing).then((value){
-                                          print('All done setting');
                                           Navigator.of(context).pop();
                                           Navigator.push(context, new MaterialPageRoute(builder: (context) => new ViewListing(_email, _name, _sex, _age, _id)));
                                         });
                                       },
                                     ),
-                                    visible: _vis,
+                                    visible: _vis0
                                   ),
                                   Visibility(
                                     child: IconButton(
                                       icon: Icon(Icons.cancel),
                                       onPressed: (){
-                                        _listing['claimed'].remove(_u);
+                                        //_listing['claimed'].remove(_u);
+                                        _listing['claimed'][_u]['status'] = 'cancelled';
                                         dbHandler.setListingMap(_id, _listing).then((value){
                                           Navigator.of(context).pop();
                                           Navigator.push(context, new MaterialPageRoute(builder: (context) => new ViewListing(_email, _name, _sex, _age, _id)));
                                         });
                                       },
                                     ),
-                                    visible: _vis,
+                                    visible: _vis0
+                                  ),
+                                  Visibility(
+                                    child: IconButton(
+                                      icon: Icon(Icons.undo),
+                                      onPressed: (){
+                                        _listing['claimed'][_u]['status'] = 'reserved';
+                                        dbHandler.setListingMap(_id, _listing).then((value){
+                                          Navigator.of(context).pop();
+                                          Navigator.push(context, new MaterialPageRoute(builder: (context) => new ViewListing(_email, _name, _sex, _age, _id)));
+                                        });
+                                      },
+                                    ),
+                                    visible: _vis1
                                   ),
                                 ],
                               );

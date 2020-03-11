@@ -5,11 +5,11 @@ import 'package:mmo_foodapp/main.dart';
 var currentSelectedValue;
 
 class Config extends StatefulWidget {
-  String email, name, sex;
-  int age;
-  Config(this.email, this.age, this.name, this.sex);
+  final String _email, _name, _sex;
+  final int _age;
+  Config(this._email, this._age, this._name, this._sex);
   @override
-  ConfigState createState() => ConfigState(email, age, name, sex);
+  ConfigState createState() => ConfigState(_email, _age, _name, _sex);
 }
 
 class ConfigState extends State<Config> {
