@@ -7,15 +7,17 @@ import 'package:mmo_foodapp/viewforeign.dart';
 class Search extends StatefulWidget {
   final String _email, _name, _sex;
   final int _age;
+  final List<dynamic> _claimed;
 
-  Search(this._email, this._name, this._sex, this._age);
+  Search(this._email, this._name, this._sex, this._age, this._claimed);
   @override
-  SearchState createState() => SearchState(_email, _name, _sex, _age);
+  SearchState createState() => SearchState(_email, _name, _sex, _age, _claimed);
 }
 
 class SearchState extends State<Search> {
   String _email, _name, _sex;
   int _age;
+  List<dynamic> _claimed;
 
   var _txtLat = TextEditingController();
   var _txtLon = TextEditingController();
@@ -25,7 +27,7 @@ class SearchState extends State<Search> {
   var dbHandler = new Db();
   List<dynamic> _inRange = [];
 
-  SearchState(this._email, this._name, this._sex, this._age);
+  SearchState(this._email, this._name, this._sex, this._age, this._claimed);
 
   @override
   Widget build(BuildContext context) {
@@ -133,7 +135,7 @@ class SearchState extends State<Search> {
                         ),
                         onTap: () {
                           Navigator.push(context, new MaterialPageRoute(builder: (context) =>
-                          new ViewForeign(_email, _name, _sex, _age, _inRange[index]['id'], _inRange[index])));
+                          new ViewForeign(_email, _name, _sex, _age, _claimed, _inRange[index]['id'], _inRange[index])));
                         }
                     );
                   }

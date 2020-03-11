@@ -73,6 +73,15 @@ class Db {
     });
   }
 
+  Future<List<dynamic>> getDataForClaimed(List<dynamic> claimed) async {
+    var results = [];
+    for (String id in claimed) {
+      var x = await Firestore.instance.collection('listings').document(id).get();
+      results.add(x.data);
+    }
+    return results;
+  }
+
   Future<List<dynamic>> getByLocation(double lat, double lon, double rad) async {
     double _lat0 = lat - (rad/69.2), _lat1 = lat + (rad/69.2), _lon0 = lon - (rad/69.2), _lon1 = lon + (rad/69.2);
     print('Retrieving locations w/in $_lat0 to $_lat1 N and $_lon0 to $_lon1 east');

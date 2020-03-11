@@ -6,6 +6,7 @@ import 'package:mmo_foodapp/makelisting.dart';
 import 'package:mmo_foodapp/register.dart';
 import 'package:mmo_foodapp/viewlisting.dart';
 import 'package:mmo_foodapp/search.dart';
+import 'package:mmo_foodapp/viewforeign.dart';
 
 void main() => runApp(MyApp());
 
@@ -149,6 +150,8 @@ class HomeState extends State<Home> {
   int _age;
 
   var _listings = [];
+  var _claimed = [];
+  var _claimedData = [];
 
   HomeState(String email, String name, String sex, int age) {
     print('Creating homestate!');
@@ -156,108 +159,158 @@ class HomeState extends State<Home> {
     this._name = name;
     this._sex = sex;
     this._age = age;
+  }
 
-    print('Trying to get listings');
-
-    dbHandler.getListings(_email).then((List<dynamic> list){
+  Future<int> _getData() async {
+    await dbHandler.getListings(_email).then((List<dynamic> list) async {
       _listings = list;
-      setState((){});
+      await dbHandler.getValues(_email).then((Map<String, dynamic> userData) async {
+        _claimed = userData['claimed'];
+        await dbHandler.getDataForClaimed(_claimed).then((List<dynamic> list) {
+          _claimedData = list;
+          return 0;
+        });
+      });
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Leftovers'),
-      ),
-      body: ListView(
-        shrinkWrap: true,
-          padding: EdgeInsets.all(15.0),//Column(
-        //mainAxisAlignment: MainAxisAlignment.center,
-        //crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
-          Align(
-            alignment: Alignment.topCenter,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                FlatButton(
-                    child: Text(
-                        'LOGOUT'
+    return FutureBuilder<int>(
+      future: _getData(),
+      builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          return Scaffold(
+              appBar: AppBar(
+                title: Text('Leftovers'),
+              ),
+              body: ListView(
+                  shrinkWrap: true,
+                  padding: EdgeInsets.all(15.0),//Column(
+                  //mainAxisAlignment: MainAxisAlignment.center,
+                  //crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Align(
+                      alignment: Alignment.topCenter,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: <Widget>[
+                          FlatButton(
+                              child: Text(
+                                  'LOGOUT'
+                              ),
+                              onPressed: () {
+                                Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => Root()), (Route route) => false);
+                              }
+                          ),
+                          IconButton(
+                            icon: Icon(
+                              Icons.settings,
+                              color: Colors.blue,
+                            ),
+                            onPressed: (){
+                              print('Config!');
+                              Navigator.push(context, new MaterialPageRoute(builder: (context) => new Config(_email, _age, _name, _sex)));
+                            },
+                          ),
+                        ],
+                      ),
+
                     ),
-                    onPressed: () {
-                      Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => Root()), (Route route) => false);
-                    }
-                ),
-                IconButton(
-                  icon: Icon(
-                    Icons.settings,
-                    color: Colors.blue,
-                  ),
-                  onPressed: (){
-                    print('Config!');
-                    Navigator.push(context, new MaterialPageRoute(builder: (context) => new Config(_email, _age, _name, _sex)));
-                  },
-                ),
-              ],
-            ),
-
-          ),
-          SizedBox(height: 20.0),
-          Text('Welcome, $_name'),
-          SizedBox(height: 20.0),
-          RaisedButton(
-            onPressed: (){
-              Navigator.push(context, new MaterialPageRoute(builder: (context) => new MakeListing(_email, _name, _sex, _age)));
-            },
-            child: Text('CREATE LISTING')
-          ),
-          RaisedButton(
-            onPressed: (){
-              Navigator.push(context, new MaterialPageRoute(builder: (context) => new Search(_email, _name, _sex, _age)));
-            },
-            child: Text('FIND FOOD')
-          ),
-          SizedBox(height: 20.0),
-          Text('Your posted listings:'),
-          Container(
-            height: 200,
-            child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: _listings.length,
-                padding: EdgeInsets.only(left: 25.0, right: 25.0, top: 0.0, bottom: 0.0),
-                itemBuilder: (BuildContext ctxt, int index) {
-                  return new ListTile(
-                      title: Text(
-                        _listings[index]['title'],
+                    SizedBox(height: 20.0),
+                    Text('Welcome, $_name'),
+                    SizedBox(height: 20.0),
+                    RaisedButton(
+                        onPressed: (){
+                          Navigator.push(context, new MaterialPageRoute(builder: (context) => new MakeListing(_email, _name, _sex, _age)));
+                        },
+                        child: Text('CREATE LISTING')
+                    ),
+                    RaisedButton(
+                        onPressed: (){
+                          Navigator.push(context, new MaterialPageRoute(builder: (context) => new Search(_email, _name, _sex, _age, _claimed)));
+                        },
+                        child: Text('FIND FOOD')
+                    ),
+                    SizedBox(height: 20.0),
+                    Text('Your posted listings:'),
+                    Container(
+                      //decoration: BoxDecoration(border: Border.all(width: 2.0, color: Colors.blue)),
+                      constraints: BoxConstraints(maxHeight: 200),
+                      //height: 200,
+                      child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: _listings.length,
+                          padding: EdgeInsets.only(left: 25.0, right: 25.0, top: 0.0, bottom: 0.0),
+                          itemBuilder: (BuildContext ctxt, int index) {
+                            return new ListTile(
+                                title: Text(
+                                  _listings[index]['title'],
+                                ),
+                                subtitle: Text(
+                                  _listings[index]['descr'],
+                                ),
+                                trailing: Icon(
+                                  Icons.arrow_forward_ios,
+                                ),
+                                onTap: () {
+                                  print('${_listings[index].data}');
+                                  Navigator.push(context, new MaterialPageRoute(builder: (context) =>
+                                  new ViewListing(_email, _name, _sex, _age, _listings[index].documentID)));
+                                }
+                            );
+                          }
                       ),
-                      subtitle: Text(
-                        _listings[index]['descr'],
+                    ),
+                    SizedBox(height: 20.0),
+                    Text('Food you have claimed:'),
+                    Container(
+                      //decoration: BoxDecoration(border: Border.all(width: 2.0, color: Colors.blue)),
+                      constraints: BoxConstraints(maxHeight: 200),
+                      //height: 200,
+                      child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: _claimedData.length,
+                          padding: EdgeInsets.only(left: 25.0, right: 25.0, top: 0.0, bottom: 0.0),
+                          itemBuilder: (BuildContext ctxt, int index) {
+                            return new ListTile(
+                                title: Text(
+                                  _claimedData[index]['title'],
+                                ),
+                                subtitle: Text(
+                                    '(${_claimedData[index]["distance"]} miles) ${_claimedData[index]["descr"]}'
+                                ),
+                                trailing: Icon(
+                                  Icons.arrow_forward_ios,
+                                ),
+                                onTap: () {
+                                  Navigator.push(context, new MaterialPageRoute(builder: (context) =>
+                                  new ViewForeign(_email, _name, _sex, _age, _claimed, _claimed[index], _claimedData[index])));
+                                }
+                            );
+                          }
                       ),
-                      trailing: Icon(
-                        Icons.arrow_forward_ios,
-                      ),
-                      onTap: () {
-                        print('${_listings[index].data}');
-                        Navigator.push(context, new MaterialPageRoute(builder: (context) =>
-                        new ViewListing(_email, _name, _sex, _age, _listings[index].documentID)));
-                      }
-                  );
-                }
-            ),
-          ),
-          SizedBox(height: 20.0),
-          Text('Food you have claimed:'),
-          Container(
-            height: 200,
-            /*child: ListView.builder(
-
-            )*/
-          )
-        ]
-      )
+                    ),
+                  ]
+              )
+          );
+        } else {
+          return Scaffold(
+              appBar: AppBar(
+                title: Text('Leftovers'),
+              ),
+              body: Container(
+                  alignment: Alignment.center,
+                  child: SizedBox(
+                    child: CircularProgressIndicator(),
+                    width: 60,
+                    height: 60,
+                  )
+              )
+          );
+        }
+      }
     );
   }
 }

@@ -1,16 +1,18 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:mmo_foodapp/auth.dart';
+import 'package:mmo_foodapp/main.dart';
 
 class ViewForeign extends StatefulWidget {
   final String _email, _name, _sex, _id;
   final int _age;
   final dynamic _data;
+  final List<dynamic> _claimed;
 
-  ViewForeign(this._email, this._name, this._sex, this._age, this._id, this._data);
+  ViewForeign(this._email, this._name, this._sex, this._age, this._claimed, this._id, this._data);
 
   @override
-  ViewForeignState createState() => ViewForeignState(_email, _name, _sex, _age, _id, _data);
+  ViewForeignState createState() => ViewForeignState(_email, _name, _sex, _age, _claimed, _id, _data);
 }
 
 class ViewForeignState extends State<ViewForeign> {
@@ -20,17 +22,11 @@ class ViewForeignState extends State<ViewForeign> {
   Map<String, dynamic> _listing;
   final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
   var dbHandler = new Db();
+  List<dynamic> _claimed;
 
   var _txtClaim = new TextEditingController();
 
-  ViewForeignState(String email, String name, String sex, int age, String id, dynamic data) {
-    this._email = email;
-    this._name = name;
-    this._sex = sex;
-    this._age = age;
-    this._id = id;
-    this._data = data;
-  }
+  ViewForeignState(this._email, this._name, this._sex, this._age, this._claimed, this._id, this._data);
 
   Future<int> _getLD() async {
     print('Got data $_data');
@@ -134,8 +130,8 @@ class ViewForeignState extends State<ViewForeign> {
                                   child: TextFormField(
                                     decoration: const InputDecoration(
                                         icon: Icon(Icons.fastfood),
-                                        hintText: 'Update, or 0 to cancel',
-                                        labelText: 'Amount currently claimed'
+                                        hintText: 'New amount',
+                                        labelText: 'Amount'
                                     ),
                                     keyboardType: TextInputType.number,
                                     controller: _txtClaim,
@@ -163,6 +159,33 @@ class ViewForeignState extends State<ViewForeign> {
                                 RaisedButton(
                                   child: Text('CLAIM'),
                                   onPressed: _submitForm
+                                ),
+                                SizedBox(width: 10.0),
+                                RaisedButton(
+                                  child: Text('CANCEL'),
+                                  onPressed: () {
+                                    int _amt = int.parse(_txtClaim.text);
+                                    if (_amt != 0) {
+                                      _listing['claimed'].remove(_email);
+                                      _claimed.remove(_id);
+                                      Map<String, dynamic> userData = {
+                                        'age': _age,
+                                        'name': _name,
+                                        'sex': _sex,
+                                        'claimed': _claimed
+                                      };
+                                      dbHandler.setUserData(_email, userData);
+
+                                      dbHandler.setListingMap(_id, _listing)
+                                          .then((value) {
+                                        _showHome(
+                                            context, 'Reservation deletion',
+                                            'If you confirm, your reservation will be deleted.');
+                                      });
+                                    } else {
+                                      _showDialog(context, 'Cannot cancel', 'You do not have a reservation, therefore there is nothing to cancel.');
+                                    }
+                                  }
                                 )
                               ],
                             )
@@ -201,21 +224,42 @@ class ViewForeignState extends State<ViewForeign> {
       if (_listing['claimed'].containsKey(_email)) {
         if (_listing['claimed'][_email]['status'] == 'cancelled') {
           _showDialog(context, 'Error', 'Your reservation was cancelled by the listing owner. You cannot reserve food.');
+          return;
         } else if (_listing['claimed'][_email]['status'] == 'received') {
-          _showDialog(context, 'Error', 'Your reservation has been marked as received by the listing owner. You may not claim any more food unless they undo this');
+          _showDialog(context, 'Error', 'Your reservation has been marked as received by the listing owner. You may not claim any more food unless they undo this.');
+          return;
         }
       }
 
       if (_amt == 0 && _listing['claimed'].containsKey(_email)) {
         _listing['claimed'].remove(_email);
+        _claimed.remove(_id);
+        Map<String, dynamic> userData = {
+          'age': _age,
+          'name': _name,
+          'sex': _sex,
+          'claimed': _claimed
+        };
+        dbHandler.setUserData(_email, userData);
+
         dbHandler.setListingMap(_id, _listing).then((value){
-          _showDialog(context, 'Reservation deleted', 'You are no longer reserving any food from this listing.');
+          _showHome(context, 'Reservation deletion', 'If you confirm, your reservation will be deleted.');
         });
       } else if (_amt != 0 && !_listing['claimed'].containsKey(_email)) {
         _listing['claimed'][_email] = {
           'no': _amt,
           'status': 'reserved'
         };
+
+        _claimed.add(_id);
+        Map<String, dynamic> userData = {
+          'age': _age,
+          'name': _name,
+          'sex': _sex,
+          'claimed': _claimed
+        };
+        dbHandler.setUserData(_email, userData);
+
         dbHandler.setListingMap(_id, _listing).then((value){
           _showDialog(context, 'Reservation updated', 'The amount of food you have claimed has been updated to $_amt servings.');
         });
@@ -224,6 +268,16 @@ class ViewForeignState extends State<ViewForeign> {
           'no': _amt,
           'status': 'reserved'
         };
+
+        _claimed.add(_id);
+        Map<String, dynamic> userData = {
+          'age': _age,
+          'name': _name,
+          'sex': _sex,
+          'claimed': _claimed
+        };
+        dbHandler.setUserData(_email, userData);
+
         dbHandler.setListingMap(_id, _listing).then((value){
           _showDialog(context, 'Reservation created', 'You have claimed $_amt servings.');
         });
@@ -244,12 +298,40 @@ class ViewForeignState extends State<ViewForeign> {
                 onPressed: () {
                   Navigator.of(context).pop();
                   Navigator.of(context).pop();
-                  Navigator.push(context, new MaterialPageRoute(builder: (context) => new ViewForeign(_email, _name, _sex, _age, _id, _listing)));
+                  Navigator.push(context, new MaterialPageRoute(builder: (context) => new ViewForeign(_email, _name, _sex, _age, _claimed, _id, _listing)));
                 },
               ),
             ],
           );
         }
+    );
+  }
+
+  void _showHome(BuildContext context, String title, String body) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: new Text(title),
+          content: new Text(body),
+          actions: <Widget>[
+            new RaisedButton(
+              child: new Text('Confirm'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
+                Navigator.push(context, new MaterialPageRoute(builder: (context) => new Home(_email, _name, _sex, _age)));
+              },
+            ),
+            new RaisedButton(
+              child: new Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              }
+            )
+          ],
+        );
+      }
     );
   }
 }
