@@ -146,10 +146,10 @@ class ViewForeignState extends State<ViewForeign> {
                                         return 'Cannot be negative';
                                       }
                                       if (int.parse(value) > _listing['limit']) {
-                                        return 'Can\'t be higher than the limit';
+                                        return 'Limit is ${_listing["limit"]}';
                                       }
                                       if (int.parse(value) > _remaining) {
-                                        return 'Can\'t be higher than the amount left';
+                                        return 'Not enough left';
                                       }
                                       return null;
                                     }
@@ -245,13 +245,15 @@ class ViewForeignState extends State<ViewForeign> {
         dbHandler.setListingMap(_id, _listing).then((value){
           _showHome(context, 'Reservation deletion', 'If you confirm, your reservation will be deleted.');
         });
-      } else if (_amt != 0 && !_listing['claimed'].containsKey(_email)) {
+      } else if (_amt != 0 && _listing['claimed'].containsKey(_email)) {
         _listing['claimed'][_email] = {
           'no': _amt,
           'status': 'reserved'
         };
 
-        _claimed.add(_id);
+        if (!_claimed.contains(_id)) {
+          _claimed.add(_id);
+        }
         Map<String, dynamic> userData = {
           'age': _age,
           'name': _name,
@@ -269,7 +271,9 @@ class ViewForeignState extends State<ViewForeign> {
           'status': 'reserved'
         };
 
-        _claimed.add(_id);
+        if (!_claimed.contains(_id)) {
+          _claimed.add(_id);
+        }
         Map<String, dynamic> userData = {
           'age': _age,
           'name': _name,
@@ -298,7 +302,7 @@ class ViewForeignState extends State<ViewForeign> {
                 onPressed: () {
                   Navigator.of(context).pop();
                   Navigator.of(context).pop();
-                  Navigator.push(context, new MaterialPageRoute(builder: (context) => new ViewForeign(_email, _name, _sex, _age, _claimed, _id, _listing)));
+                  //Navigator.push(context, new MaterialPageRoute(builder: (context) => new ViewForeign(_email, _name, _sex, _age, _claimed, _id, _listing)));
                 },
               ),
             ],
