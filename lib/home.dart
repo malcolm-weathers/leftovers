@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'package:leftovers/auth.dart';
 import 'package:leftovers/config.dart';
+import 'package:leftovers/createlisting.dart';
+import 'package:leftovers/location.dart';
 import 'package:leftovers/main.dart';
 import 'package:leftovers/search.dart';
 import 'package:leftovers/viewmine.dart';
@@ -17,6 +19,7 @@ class Home extends StatefulWidget {
 class HomeState extends State<Home> {
   Auth authHandler = Auth();
   String _email;
+  double _lat, _lon;
   Map<String, dynamic> _userData;
 
   var _listings = [];
@@ -25,6 +28,11 @@ class HomeState extends State<Home> {
   HomeState(this._email);
 
   Future<int> _getData() async {
+    MyLocation _myLocation = new MyLocation();
+    _myLocation.get().then((Map<String, double> _myLoc) {
+      _lat = _myLoc['latitude'];
+      _lon = _myLoc['longitude'];
+    });
     await authHandler.listingsGetByUser(_email).then((List<Map<String, dynamic>> _results) async {
       _listings = _results;
     });
@@ -35,10 +43,17 @@ class HomeState extends State<Home> {
       for (String _x in _userData['claimed']) {
         print('looping for $_x');
         await authHandler.listingGet(_x).then((Map<String, dynamic> _data) async {
+          double _olat = _data['location']['latitude'];
+          double _olon = _data['location']['longitude'];
+          print('variables are $_olat $_olon $_lat $_lon');
+          double _dist = (_lat - _olat).abs() * 69.2 + (_lon - _olon).abs() * 69.2;
+          _dist = double.parse(_dist.toStringAsFixed(1));
+          _data["distance"] = _dist;
           _claimedData.add(_data);
         });
       }
     });
+
   }
 
   @override
@@ -88,7 +103,7 @@ class HomeState extends State<Home> {
                       SizedBox(height: 20.0),
                       RaisedButton(
                           onPressed: (){
-                            //Navigator.push(context, new MaterialPageRoute(builder: (context) => new MakeListing(_email, _name, _sex, _age)));
+                            Navigator.push(context, new MaterialPageRoute(builder: (context) => new CreateListing(_email)));
                           },
                           child: Text('CREATE LISTING')
                       ),
@@ -137,6 +152,7 @@ class HomeState extends State<Home> {
                           itemCount: _claimedData.length,
                           padding: EdgeInsets.only(left: 25.0, right: 25.0, top: 0.0, bottom: 0.0),
                           itemBuilder: (BuildContext ctxt, int index) {
+
                             return new ListTile(
                               title: Text(
                                 _claimedData[index]['title'],

@@ -68,10 +68,12 @@ class Auth {
     _snap.documents.forEach((DocumentSnapshot _item) {
       Map<String, dynamic> _data = _item.data;
       _data['id'] = _item.documentID;
-      double _dist = (lat - _data['location']['latitude']).abs() / 69.2 + (lon - _data['location']['longitude']).abs() / 69.2;
+      double _dist = (lat - _data['location']['latitude']).abs() * 69.2 + (lon - _data['location']['longitude']).abs() * 69.2;
       if (_dist < rad) {
         _data['distance'] = double.parse(_dist.toStringAsFixed(1));
         _results.add(_data);
+      } else {
+        print('$_dist is greater than $rad');
       }
     });
     return _results;
