@@ -1,39 +1,49 @@
 import 'package:flutter/material.dart';
-import 'package:mmo_foodapp/auth.dart';
-import 'package:mmo_foodapp/main.dart';
 
-var currentSelectedValue;
+import 'package:leftovers/auth.dart';
+import 'package:leftovers/home.dart';
 
 class Config extends StatefulWidget {
-  final String _email, _name, _sex;
-  final int _age;
-  Config(this._email, this._age, this._name, this._sex);
+  final String _email;
+  final Map<String, dynamic> _userData;
+
+  Config(this._email, this._userData);
   @override
-  ConfigState createState() => ConfigState(_email, _age, _name, _sex);
+  ConfigState createState() => ConfigState(_email, _userData);
 }
 
 class ConfigState extends State<Config> {
-  String _email, _name, _sex;
-  int _age;
-  var dbHandler = Db();
-  final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
+  String _email;
+  Map<String, dynamic> _userData;
 
-  ConfigState(email, age, name, sex) {
-    this._email = email;
-    this._age = age;
-    this._name = name;
-    this._sex = sex;
-    currentSelectedValue = _sex;
+  Auth authHandler = Auth();
+
+  final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
+  final TextEditingController _cName = TextEditingController(), _cAge = TextEditingController();
+  String currentSelectedValue = '';
+
+  ConfigState(email, userData) {
+   this._email = email;
+   this._userData = userData;
+   currentSelectedValue = _userData['sex'];
+   _cName.text = _userData['name'];
+   _cAge.text = _userData['age'].toString();
   }
 
   void _submitForm() {
     final FormState form = _formKey.currentState;
-    if (form.validate() && _sex != '') {
+    if (form.validate() && currentSelectedValue != '') {
       form.save();
-      dbHandler.setUserData(_email, {'name':_name, 'sex':_sex, 'age':_age});
-      _showDialog(context, 'Settings updated', '', true);
-    } else {
-      print('Validation failed');
+      Map<String, dynamic> _newData = {
+        'name': _cName.text,
+        'age': int.parse(_cAge.text),
+        'sex': currentSelectedValue,
+        'claimed': _userData['claimed']
+      };
+      authHandler.userDataSet(_email.replaceAll('.', ','), _newData).then((int result) {
+        Navigator.of(context).pop();
+      });
+
     }
   }
 
@@ -54,6 +64,7 @@ class ConfigState extends State<Config> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
                 TextFormField(
+                  controller: _cName,
                   decoration: const InputDecoration(
                     icon: Icon(Icons.person),
                     hintText: 'Name',
@@ -63,13 +74,12 @@ class ConfigState extends State<Config> {
                     if (value.isEmpty) {
                       return 'Cannot be blank';
                     }
-                    _name = value;
                     return null;
                   },
                   textCapitalization: TextCapitalization.words,
-                  initialValue: _name
                 ),
                 TextFormField(
+                  controller: _cAge,
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(
                     icon: Icon(Icons.calendar_today),
@@ -81,12 +91,10 @@ class ConfigState extends State<Config> {
                       return 'Cannot be blank';
                     }
                     if (int.parse(value) < 13 || int.parse(value) > 110) {
-                      return 'Pick a real age';
+                      return 'Age must be between 13 and 110';
                     }
-                    _age = int.parse(value);
                     return null;
                   },
-                  initialValue: _age.toString()
                 ),
                 DropdownButton<String>(
                   hint: Text('Gender'),
@@ -100,7 +108,6 @@ class ConfigState extends State<Config> {
                   onChanged: (String newVal) {
                     setState((){
                       currentSelectedValue = newVal;
-                      _sex = newVal;
                     });
                   },
                 ),
@@ -115,11 +122,10 @@ class ConfigState extends State<Config> {
                     ),
                     SizedBox(width: 50),
                     RaisedButton(
-                        child: Text('CANCEL'),
-                        onPressed: () {
-                          Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => Home(_email, _name, _sex, _age)), (Route route) => false);
-
-                        }
+                      child: Text('CANCEL'),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      }
                     ),
                   ]
                 )
@@ -144,7 +150,7 @@ class ConfigState extends State<Config> {
                 onPressed: () {
                   Navigator.of(context).pop();
                   if (goHome) {
-                    Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => Home(_email, _name, _sex, _age)), (Route route) => false);
+                    Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => Home(_email)), (Route route) => false);
                   }
                 },
               ),

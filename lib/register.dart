@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:mmo_foodapp/auth.dart';
-import 'package:mmo_foodapp/main.dart';
 
-var currentSelectedValue;
+import 'package:leftovers/auth.dart';
+import 'package:leftovers/main.dart';
 
 class Register extends StatefulWidget {
   @override
@@ -11,25 +9,33 @@ class Register extends StatefulWidget {
 }
 
 class RegisterState extends State<Register> {
-  var authHandler = new Auth();
-  var dbHandler = new Db();
-  String _email = '', _password = '', _name = '', _sex = '';
-  int _age = 0;
+  Auth authHandler = new Auth();
+
+  String currentSelectedValue;
   final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
+  final _cEmail = TextEditingController(), _cPassword = TextEditingController(), _cName = TextEditingController(),
+        _cAge = TextEditingController();
+  String _sex = '';
 
   void _submitForm() {
     final FormState form = _formKey.currentState;
     if (form.validate() && _sex != '') {
       form.save();
-      authHandler.handleRegister(_email, _password).then((FirebaseUser user) {
-        print('Registered $_email');
-        dbHandler.setUserData(_email, {'name':_name, 'sex':_sex, 'age':_age});
-        _showDialog(context, 'Registration successful', 'You can now log in.', true);
-      }).catchError((e){
-        _showDialog(context, 'Registration failed', 'This email is probably already in use.', false);
+      Map<String, dynamic> _data = {
+        'name': _cName.text,
+        'sex': _sex,
+        'age': int.parse(_cAge.text),
+        'claimed': []
+      };
+      authHandler.userRegister(_cEmail.text, _cPassword.text, _data).then((bool success) {
+        if (success) {
+          _showDialog(context, 'Registration successful', 'You can now log in.', true);
+        } else {
+          _showDialog(context, 'Registration failed', 'That email may already in use.', false);
+        }
+      }).catchError((e) {
+        _showDialog(context, 'Registration failed', 'That email may already be in use.', false);
       });
-    } else {
-      print('Validation failed');
     }
   }
 
@@ -43,14 +49,15 @@ class RegisterState extends State<Register> {
         child: new Form(
           key: _formKey,
           child: new ListView(
-          shrinkWrap: true,
-          padding: EdgeInsets.all(15.0),
-          children: <Widget>[
+            shrinkWrap: true,
+            padding: EdgeInsets.all(15.0),
+            children: <Widget>[
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
                   TextFormField(
+                    controller: _cName,
                     decoration: const InputDecoration(
                       icon: Icon(Icons.person),
                       hintText: 'Name',
@@ -60,12 +67,12 @@ class RegisterState extends State<Register> {
                       if (value.isEmpty) {
                         return 'Cannot be blank';
                       }
-                      _name = value;
                       return null;
                     },
                     textCapitalization: TextCapitalization.words,
                   ),
                   TextFormField(
+                    controller: _cAge,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
                       icon: Icon(Icons.calendar_today),
@@ -77,9 +84,8 @@ class RegisterState extends State<Register> {
                         return 'Cannot be blank';
                       }
                       if (int.parse(value) < 13 || int.parse(value) > 110) {
-                        return 'Pick a real age';
+                        return 'Age must be between 13 and 110';
                       }
-                      _age = int.parse(value);
                       return null;
                     },
                   ),
@@ -100,6 +106,7 @@ class RegisterState extends State<Register> {
                     },
                   ),
                   TextFormField(
+                    controller: _cEmail,
                     decoration: const InputDecoration(
                       icon: Icon(Icons.email),
                       hintText: 'Email',
@@ -111,13 +118,13 @@ class RegisterState extends State<Register> {
                         return 'Cannot be blank';
                       }
                       if (value.indexOf('@') + 1 < value.indexOf('.') && value.indexOf('@') != -1 && value[value.length - 1] != '.' && value[0] != '@') {
-                        _email = value;
                         return null;
                       }
                       return 'Must be a valid email address';
                     },
                   ),
                   TextFormField(
+                    controller: _cPassword,
                     obscureText: true,
                     decoration: const InputDecoration(
                       icon: Icon(Icons.lock),
@@ -131,7 +138,6 @@ class RegisterState extends State<Register> {
                       if (value.length < 6) {
                         return 'Password must be 6 characters in length or greater';
                       }
-                      _password = value;
                       return null;
                     },
                   ),
@@ -143,7 +149,7 @@ class RegisterState extends State<Register> {
                       labelText: 'Confirm password',
                     ),
                     validator: (value) {
-                      if (value != _password) {
+                      if (value != _cPassword.text) {
                         return 'Passwords must match';
                       }
                       return null;
@@ -165,24 +171,24 @@ class RegisterState extends State<Register> {
 
   void _showDialog(BuildContext context, String title, String body, bool goHome) {
     showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: new Text(title),
-            content: new Text(body),
-            actions: <Widget>[
-              new FlatButton(
-                child: new Text('Close'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  if (goHome) {
-                    Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => Root()), (Route route) => false);
-                  }
-                },
-              ),
-            ],
-          );
-        }
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: new Text(title),
+          content: new Text(body),
+          actions: <Widget>[
+            new FlatButton(
+              child: new Text('Close'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                if (goHome) {
+                  Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => Main()), (Route route) => false);
+                }
+              },
+            ),
+          ],
+        );
+      }
     );
   }
 }

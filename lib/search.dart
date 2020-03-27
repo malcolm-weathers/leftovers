@@ -1,39 +1,36 @@
 import 'package:flutter/material.dart';
-import 'package:location/location.dart';
-import 'package:mmo_foodapp/getlocation.dart';
-import 'package:mmo_foodapp/auth.dart';
-import 'package:mmo_foodapp/viewforeign.dart';
+
+import 'package:leftovers/auth.dart';
+import 'package:leftovers/location.dart';
+import 'package:leftovers/viewother.dart';
 
 class Search extends StatefulWidget {
-  final String _email, _name, _sex;
-  final int _age;
-  final List<dynamic> _claimed;
+  final String _email;
+  final Map<String, dynamic> _userData;
 
-  Search(this._email, this._name, this._sex, this._age, this._claimed);
+  Search(this._email, this._userData);
   @override
-  SearchState createState() => SearchState(_email, _name, _sex, _age, _claimed);
+  SearchState createState() => SearchState(_email, _userData);
 }
 
 class SearchState extends State<Search> {
-  String _email, _name, _sex;
-  int _age;
-  List<dynamic> _claimed;
+  String _email;
+  Map<String, dynamic> _userData;
 
-  var _txtLat = TextEditingController();
-  var _txtLon = TextEditingController();
-  var _txtRad = TextEditingController(text: '5.0');
+  Auth authHandler = new Auth();
 
   final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
-  var dbHandler = new Db();
+  final TextEditingController _txtLat = TextEditingController(), _txtLon = TextEditingController(), _txtRad = TextEditingController(text: '5.0');
+
   List<dynamic> _inRange = [];
 
-  SearchState(this._email, this._name, this._sex, this._age, this._claimed);
+  SearchState(this._email, this._userData);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Search listings')
+          title: Text('Search listings')
       ),
       body: Padding(
         padding: EdgeInsets.only(left: 15.0, right: 15.0),
@@ -77,21 +74,20 @@ class SearchState extends State<Search> {
                         if (value.isEmpty) {
                           return 'Is blank!';
                         }
-                        //_descr = value;
                         return null;
                       },
                       controller: _txtLon,
                     ),
                   ),
                   FlatButton(
-                    child: Text('CURRENT'),
-                    onPressed: () {
-                      GetLocation _gloc = new GetLocation();
-                      _gloc.get().then((LocationData _locd) {
-                        _txtLat.text = _locd.latitude.toString();
-                        _txtLon.text = _locd.longitude.toString();
-                      });
-                    }
+                      child: Text('CURRENT'),
+                      onPressed: () {
+                        MyLocation _myLocation = new MyLocation();
+                        _myLocation.get().then((Map<String, double> _myLoc) {
+                          _txtLat.text = _myLoc['latitude'].toString();
+                          _txtLon.text = _myLoc['longitude'].toString();
+                        });
+                      }
                   ),
                 ],
               ),
@@ -114,8 +110,8 @@ class SearchState extends State<Search> {
               ),
               SizedBox(height: 10.0),
               RaisedButton(
-                child: Text('SEARCH'),
-                onPressed: _submitForm
+                  child: Text('SEARCH'),
+                  onPressed: _submitForm
               ),
               SizedBox(height: 20.0),
               ListView.builder(
@@ -128,14 +124,14 @@ class SearchState extends State<Search> {
                           _inRange[index]['title'],
                         ),
                         subtitle: Text(
-                          '(${_inRange[index]["distance"]} miles) ${_inRange[index]["descr"]}'
+                            '(${_inRange[index]["distance"]} miles) ${_inRange[index]["descr"]}'
                         ),
                         trailing: Icon(
                           Icons.arrow_forward_ios,
                         ),
                         onTap: () {
                           Navigator.push(context, new MaterialPageRoute(builder: (context) =>
-                          new ViewForeign(_email, _name, _sex, _age, _claimed, _inRange[index]['id'], _inRange[index])));
+                          new ViewOther(_email, _userData, _inRange[index]['id'])));
                         }
                     );
                   }
@@ -151,7 +147,7 @@ class SearchState extends State<Search> {
     final FormState form = _formKey.currentState;
     if (form.validate()) {
       form.save();
-      dbHandler.getByLocation(double.parse(_txtLat.text), double.parse(_txtLon.text), double.parse(_txtRad.text)).then((List<dynamic> x){
+      authHandler.listingsGetByLocation(double.parse(_txtLat.text), double.parse(_txtLon.text), double.parse(_txtRad.text)).then((List<dynamic> x){
         _inRange = x;
         setState(() {});
       });

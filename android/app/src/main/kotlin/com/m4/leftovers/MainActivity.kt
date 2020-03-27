@@ -1,4 +1,4 @@
-package com.example.foodneedyapp_v1
+package com.m4.leftovers
 
 import androidx.annotation.NonNull;
 import io.flutter.embedding.android.FlutterActivity
