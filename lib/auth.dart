@@ -1,5 +1,9 @@
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class Auth {
   final FirebaseAuth auth = FirebaseAuth.instance;
@@ -39,9 +43,10 @@ class Auth {
     return 0;
   }
 
-  Future<int> listingSet(String id, Map<String, dynamic> data) async {
-    await Firestore.instance.collection('listings').document(id).setData(data);
-    return 0;
+  Future<String> listingSet(String id, Map<String, dynamic> data) async {
+    var x = Firestore.instance.collection('listings').document(id);
+    await x.setData(data);
+    return x.documentID;
   }
 
   Future<Map<String, dynamic>> listingGet(String id) async {
@@ -77,5 +82,24 @@ class Auth {
       }
     });
     return _results;
+  }
+
+  Future<int> uploadImages(String docID, List<File> images) async {
+    String _fbase = docID+'/';
+    int counter = 0;
+    for (File _image in images) {
+      String _fname = _fbase + counter.toString() + '.jpg';
+      StorageReference storage = FirebaseStorage().ref().child(_fname);
+      counter = counter + 1;
+
+      StorageUploadTask uploadTask = storage.putData(_image.readAsBytesSync());
+      await uploadTask.onComplete;
+    }
+  }
+
+  Future<Uint8List> getImage0(String docID) async {
+    StorageReference storage = FirebaseStorage().ref().child(docID+'/0.jpg');
+    Uint8List x = await storage.getData(1024*1024*8);
+    return x;
   }
 }

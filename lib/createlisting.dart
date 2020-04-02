@@ -1,11 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import 'package:image_picker/image_picker.dart';
-import 'package:location/location.dart';
+import 'package:image_picker/image_picker.dart' as imagepicker;
 
 import 'package:leftovers/auth.dart';
-import 'package:leftovers/home.dart';
 import 'package:leftovers/location.dart';
 
 class CreateListing extends StatefulWidget {
@@ -22,7 +22,7 @@ class CreateListingState extends State<CreateListing> {
   int _quantity, _limit;
   double _lat, _lon;
 
-  var _imgs = [];
+  List<File> _imgs = [];
 
   final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
   var txtLat = TextEditingController();
@@ -56,13 +56,15 @@ class CreateListingState extends State<CreateListing> {
 
   void _submitForm() {
     final FormState form = _formKey.currentState;
-    if (form.validate() && _timeS != null && _timeT != null) {
+    DateTime _dss = DateTime.utc(_selectedDateS.year, _selectedDateS.month, _selectedDateS.day,
+        _selectedTimeS.hour, _selectedTimeS.minute).toLocal().add(Duration(hours:5));
+    DateTime _dst = DateTime.utc(_selectedDateT.year, _selectedDateT.month, _selectedDateT.day,
+        _selectedTimeT.hour, _selectedTimeT.minute).toLocal().add(Duration(hours:5));
+    if (_dss.millisecondsSinceEpoch > _dst.millisecondsSinceEpoch + 3600000 && _imgs.length > 0) {
+      print('End time must be at least an hour after start time');
+      print('At least one image must be uploaded');
+    } else if (form.validate() && _timeS != null && _timeT != null) {
       form.save();
-
-      DateTime dss = DateTime.utc(_selectedDateS.year, _selectedDateS.month, _selectedDateS.day,
-          _selectedTimeS.hour, _selectedTimeS.minute).toLocal().add(Duration(hours:5));
-      DateTime dst = DateTime.utc(_selectedDateT.year, _selectedDateT.month, _selectedDateT.day,
-          _selectedTimeT.hour, _selectedTimeT.minute).toLocal().add(Duration(hours:5));
 
       Map<String, dynamic> newListing = {
         'email': _email,
@@ -74,13 +76,16 @@ class CreateListingState extends State<CreateListing> {
           'latitude': _lat,
           'longitude': _lon
         },
-        'time_s': dss.millisecondsSinceEpoch / 1000,
-        'time_t': dst.millisecondsSinceEpoch / 1000,
+        'time_s': _dss.millisecondsSinceEpoch / 1000,
+        'time_t': _dst.millisecondsSinceEpoch / 1000,
         'claimed': {},
       };
 
-      authHandler.listingSet(null, newListing).then((value) {
-        _showDialog(context, 'Listing created', '');
+      authHandler.listingSet(null, newListing).then((String docID) {
+        //_showDialog(context, 'Listing created', '');
+        authHandler.uploadImages(docID, _imgs).then((int value) {
+          _showDialog(context, 'Listing created', '');
+        });
       });
     } else {
       print('Listing could not be created');
@@ -146,7 +151,7 @@ class CreateListingState extends State<CreateListing> {
   }
 
   Future getImage() async {
-    var image = await ImagePicker.pickImage(source: ImageSource.gallery);
+    File image = await imagepicker.ImagePicker.pickImage(source: imagepicker.ImageSource.gallery);
     setState(() {
       _imgs.add(image);
     });
@@ -301,53 +306,48 @@ class CreateListingState extends State<CreateListing> {
                             child: Text('CURRENT LOCATION')
                         ),
                         SizedBox(height: 7.5),
+                        Text('Pickup start time:'),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: <Widget>[
-                            IconButton(
-                                icon: Icon(Icons.calendar_today),
-                                onPressed: () => _selectDate(context)
-
-                            ),
-                            IconButton(
-                                icon: Icon(Icons.access_time),
-                                onPressed: () => _selectTime(context)
-                            ),
                             Text(
                                 '${_selectedDateS.year}/${_selectedDateS.month.toString().padLeft(2, "0")}/${_selectedDateS.day.toString().padLeft(2, "0")} $_timeS'
                             ),
+                            SizedBox(width: 15.0),
+                            RaisedButton(
+                                child: Text('CHANGE'),
+                                onPressed: () {
+                                  _selectTime(context);
+                                  _selectDate(context);
+                                }
+                            )
                           ],
                         ),
+                        SizedBox(height: 7.5),
+                        Text('Pickup end time:'),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: <Widget>[
-                            IconButton(
-                                icon: Icon(Icons.calendar_today),
-                                onPressed: () => _selectDateT(context)
-
-                            ),
-                            IconButton(
-                                icon: Icon(Icons.access_time),
-                                onPressed: () => _selectTimeT(context)
-                            ),
                             Text(
                                 '${_selectedDateT.year}/${_selectedDateT.month.toString().padLeft(2, "0")}/${_selectedDateT.day.toString().padLeft(2, "0")} $_timeT'
                             ),
+                            SizedBox(width: 15.0),
+                            RaisedButton(
+                                child: Text('CHANGE'),
+                                onPressed: () {
+                                  _selectTimeT(context);
+                                  _selectDateT(context);
+                                }
+                            )
                           ],
                         ),
-
                         SizedBox(height: 25.0),
                         IconButton(
                           icon: Icon(Icons.camera_alt),
                           onPressed: getImage,
                         ),
-                        /*Image.asset(
-                  _image,
-                  height: 100,
-                  width: 100,
-                ),*/
                         SizedBox(
                           height: 150,
                           child: ListView.builder(

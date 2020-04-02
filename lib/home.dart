@@ -35,6 +35,9 @@ class HomeState extends State<Home> {
     });
     await authHandler.listingsGetByUser(_email).then((List<Map<String, dynamic>> _results) async {
       _listings = _results;
+      for (var _x in _listings) {
+        _x['img0'] = await authHandler.getImage0(_x['id']);
+      }
     });
     await authHandler.userDataGet(_email).then((Map<String, dynamic> _data) async {
       _userData = _data;
@@ -50,6 +53,8 @@ class HomeState extends State<Home> {
           _dist = double.parse(_dist.toStringAsFixed(1));
           _data["distance"] = _dist;
           _claimedData.add(_data);
+
+
         });
       }
     });
@@ -125,18 +130,19 @@ class HomeState extends State<Home> {
                           padding: EdgeInsets.only(left: 25.0, right: 25.0, top: 0.0, bottom: 0.0),
                           itemBuilder: (BuildContext ctxt, int index) {
                             return new ListTile(
-                                title: Text(
-                                  _listings[index]['title'],
-                                ),
-                                subtitle: Text(
-                                  _listings[index]['descr'],
-                                ),
-                                trailing: Icon(
-                                  Icons.arrow_forward_ios,
-                                ),
-                                onTap: () {
-                                  Navigator.push(context, new MaterialPageRoute(builder: (context) => new ViewMine(_email, _userData, _listings[index]['id'])));
-                                }
+                              title: Text(
+                                _listings[index]['title'],
+                              ),
+                              subtitle: Text(
+                                _listings[index]['descr'],
+                              ),
+                              trailing: Icon(
+                                Icons.arrow_forward_ios,
+                              ),
+                              onTap: () {
+                                Navigator.push(context, new MaterialPageRoute(builder: (context) => new ViewMine(_email, _userData, _listings[index]['id'])));
+                              },
+                              leading: Image.memory(_listings[index]['img0']),
                             );
                           }
                         ),
