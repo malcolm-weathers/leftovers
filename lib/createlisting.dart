@@ -1,8 +1,8 @@
 import 'dart:io';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart' as imagepicker;
 
 import 'package:leftovers/auth.dart';
@@ -151,254 +151,268 @@ class CreateListingState extends State<CreateListing> {
   }
 
   Future getImage() async {
-    File image = await imagepicker.ImagePicker.pickImage(source: imagepicker.ImageSource.gallery);
+    File _image = await imagepicker.ImagePicker.pickImage(
+      source: imagepicker.ImageSource.gallery,
+    );
+    if (_image == null) {
+      return;
+    }
+    File _cropped = await ImageCropper.cropImage(
+      sourcePath: _image.path,
+      aspectRatio: CropAspectRatio(ratioX: 1.0, ratioY: 1.0),
+      maxHeight: 600,
+      maxWidth: 600,
+    );
+    if (_cropped == null) {
+      return;
+    }
     setState(() {
-      _imgs.add(image);
+      _imgs.add(_cropped);
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: Text('Create listing'),
-        ),
-        body: ListView(
-            shrinkWrap: true,
-            padding: EdgeInsets.all(15.0),
-            children: <Widget>[
-              Form(
-                  key: _formKey,
-                  child: new Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        TextFormField(
-                            decoration: const InputDecoration(
-                                icon: Icon(Icons.fastfood),
-                                hintText: 'Pick a short but descriptive title',
-                                labelText: 'Listing title'
-                            ),
-                            textCapitalization: TextCapitalization.words,
-                            validator: (value) {
-                              if (value.isEmpty) {
-                                return 'Cannot be blank';
-                              }
-                              _title = value;
-                              return null;
-                            }
+      appBar: AppBar(
+        title: Text('Create listing'),
+      ),
+      body: ListView(
+        shrinkWrap: true,
+        padding: EdgeInsets.all(15.0),
+        children: <Widget>[
+          Form(
+            key: _formKey,
+            child: new Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                TextFormField(
+                    decoration: const InputDecoration(
+                        icon: Icon(Icons.fastfood),
+                        hintText: 'Pick a short but descriptive title',
+                        labelText: 'Listing title'
+                    ),
+                    textCapitalization: TextCapitalization.words,
+                    validator: (value) {
+                      if (value.isEmpty) {
+                        return 'Cannot be blank';
+                      }
+                      _title = value;
+                      return null;
+                    }
+                ),
+                TextFormField(
+                    decoration: const InputDecoration(
+                        icon: Icon(Icons.description),
+                        hintText: 'Additional details',
+                        labelText: 'Listing description'
+                    ),
+                    keyboardType: TextInputType.multiline,
+                    maxLines: null,
+                    textCapitalization: TextCapitalization.sentences,
+                    validator: (value) {
+                      if (value.isEmpty) {
+                        return 'Cannot be blank';
+                      }
+                      _descr = value;
+                      return null;
+                    }
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Flexible(
+                      child: TextFormField(
+                        decoration: const InputDecoration(
+                            icon: Icon(Icons.equalizer),
+                            labelText: 'Quantity',
+                            hintText: '# of portions'
                         ),
-                        TextFormField(
-                            decoration: const InputDecoration(
-                                icon: Icon(Icons.description),
-                                hintText: 'Additional details',
-                                labelText: 'Listing description'
-                            ),
-                            keyboardType: TextInputType.multiline,
-                            maxLines: null,
-                            textCapitalization: TextCapitalization.sentences,
-                            validator: (value) {
-                              if (value.isEmpty) {
-                                return 'Cannot be blank';
-                              }
-                              _descr = value;
-                              return null;
-                            }
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: <Widget>[
-                            Flexible(
-                              child: TextFormField(
-                                decoration: const InputDecoration(
-                                    icon: Icon(Icons.equalizer),
-                                    labelText: 'Quantity',
-                                    hintText: '# of portions'
-                                ),
-                                keyboardType: TextInputType.number,
-                                validator: (value){
-                                  if (value == '') {
-                                    return 'Cannot be blank';
-                                  }
-                                  if (int.parse(value) <= 0) {
-                                    return 'Cannot be 0 or negative';
-                                  }
-                                  _quantity = int.parse(value);
-                                  return null;
-                                },
-                              ),
-                            ),
-                            Flexible(
-                                child: TextFormField(
-                                  decoration: const InputDecoration(
-                                      icon: Icon(Icons.person),
-                                      labelText: 'Limit/person',
-                                      hintText: '0 for no limit'
-                                  ),
-                                  keyboardType: TextInputType.number,
-                                  validator: (value) {
-                                    if (value == '') {
-                                      return 'Cannot be blank';
-                                    }
-                                    if (int.parse(value) < 0) {
-                                      return 'Cannot be negative. Use 0 for no limit';
-                                    }
-                                    _limit = int.parse(value);
-                                    return null;
-                                  },
-                                )
-                            )
-                          ],
-                        ),
-                        SizedBox(height: 7.5),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: <Widget>[
-                            Flexible(
-                              child: TextFormField(
-                                decoration: const InputDecoration(
-                                    icon: Icon(Icons.location_on),
-                                    labelText: 'Latitude',
-                                    hintText: 'Latitude'
-                                ),
-                                keyboardType: TextInputType.number,
-                                validator: (value){
-                                  if (value == '') {
-                                    return 'Cannot be blank';
-                                  }
-                                  _lat = double.parse(value);
-                                  return null;
-                                },
-                                controller: txtLat,
-                              ),
-                            ),
-                            Flexible(
-                                child: TextFormField(
-                                  decoration: const InputDecoration(
-                                      icon: Icon(Icons.location_on),
-                                      labelText: 'Longitude',
-                                      hintText: 'Longitude'
-                                  ),
-                                  keyboardType: TextInputType.number,
-                                  validator: (value) {
-                                    if (value == '') {
-                                      return 'Cannot be blank';
-                                    }
-                                    _lon = double.parse(value);
-                                    return null;
-                                  },
-                                  controller: txtLon,
-                                )
-                            )
-                          ],
-                        ),
-                        SizedBox(height: 5.0),
-                        FlatButton(
-                            onPressed: (){
-                              MyLocation _gloc = new MyLocation();
-                              _gloc.get().then((Map<String, double> _locd) {
-                                txtLat.text = _locd['latitude'].toString();
-                                txtLon.text = _locd['longitude'].toString();
-                              });
-                            },
-                            child: Text('CURRENT LOCATION')
-                        ),
-                        SizedBox(height: 7.5),
-                        Text('Pickup start time:'),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: <Widget>[
-                            Text(
-                                '${_selectedDateS.year}/${_selectedDateS.month.toString().padLeft(2, "0")}/${_selectedDateS.day.toString().padLeft(2, "0")} $_timeS'
-                            ),
-                            SizedBox(width: 15.0),
-                            RaisedButton(
-                                child: Text('CHANGE'),
-                                onPressed: () {
-                                  _selectTime(context);
-                                  _selectDate(context);
-                                }
-                            )
-                          ],
-                        ),
-                        SizedBox(height: 7.5),
-                        Text('Pickup end time:'),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: <Widget>[
-                            Text(
-                                '${_selectedDateT.year}/${_selectedDateT.month.toString().padLeft(2, "0")}/${_selectedDateT.day.toString().padLeft(2, "0")} $_timeT'
-                            ),
-                            SizedBox(width: 15.0),
-                            RaisedButton(
-                                child: Text('CHANGE'),
-                                onPressed: () {
-                                  _selectTimeT(context);
-                                  _selectDateT(context);
-                                }
-                            )
-                          ],
-                        ),
-                        SizedBox(height: 25.0),
-                        IconButton(
-                          icon: Icon(Icons.camera_alt),
-                          onPressed: getImage,
-                        ),
-                        SizedBox(
-                          height: 150,
-                          child: ListView.builder(
-                              shrinkWrap: true,
-                              scrollDirection: Axis.horizontal,
-                              itemCount: _imgs.length,
-                              itemBuilder: (BuildContext context, int index) {
-                                return new Container(
-                                    padding: EdgeInsets.only(left: 5.0, right: 5.0),
-                                    child: Image.file(
-                                      _imgs[index],
-                                      height: 150,
-                                      //width: 150,
-                                    )
-
-                                );
-                              }
+                        keyboardType: TextInputType.number,
+                        validator: (value){
+                          if (value == '') {
+                            return 'Cannot be blank';
+                          }
+                          if (int.parse(value) <= 0) {
+                            return 'Cannot be 0 or negative';
+                          }
+                          _quantity = int.parse(value);
+                          return null;
+                        },
+                      ),
+                    ),
+                    Flexible(
+                        child: TextFormField(
+                          decoration: const InputDecoration(
+                              icon: Icon(Icons.person),
+                              labelText: 'Limit/person',
+                              hintText: '0 for no limit'
                           ),
-                        ),
-                        SizedBox(height: 25.0),
-                        RaisedButton(
-                            child: Text('SUBMIT'),
-                            onPressed: _submitForm
+                          keyboardType: TextInputType.number,
+                          validator: (value) {
+                            if (value == '') {
+                              return 'Cannot be blank';
+                            }
+                            if (int.parse(value) < 0) {
+                              return 'Cannot be negative. Use 0 for no limit';
+                            }
+                            _limit = int.parse(value);
+                            return null;
+                          },
                         )
-                      ]
-                  )
-              )
-            ]
-        )
+                    )
+                  ],
+                ),
+                SizedBox(height: 7.5),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Flexible(
+                      child: TextFormField(
+                        decoration: const InputDecoration(
+                            icon: Icon(Icons.location_on),
+                            labelText: 'Latitude',
+                            hintText: 'Latitude'
+                        ),
+                        keyboardType: TextInputType.number,
+                        validator: (value){
+                          if (value == '') {
+                            return 'Cannot be blank';
+                          }
+                          _lat = double.parse(value);
+                          return null;
+                        },
+                        controller: txtLat,
+                      ),
+                    ),
+                    Flexible(
+                        child: TextFormField(
+                          decoration: const InputDecoration(
+                              icon: Icon(Icons.location_on),
+                              labelText: 'Longitude',
+                              hintText: 'Longitude'
+                          ),
+                          keyboardType: TextInputType.number,
+                          validator: (value) {
+                            if (value == '') {
+                              return 'Cannot be blank';
+                            }
+                            _lon = double.parse(value);
+                            return null;
+                          },
+                          controller: txtLon,
+                        )
+                    )
+                  ],
+                ),
+                SizedBox(height: 5.0),
+                FlatButton(
+                  onPressed: (){
+                    MyLocation _gloc = new MyLocation();
+                    _gloc.get().then((Map<String, double> _locd) {
+                      txtLat.text = _locd['latitude'].toString();
+                      txtLon.text = _locd['longitude'].toString();
+                    });
+                  },
+                  child: Text('CURRENT LOCATION')
+                ),
+                SizedBox(height: 7.5),
+                Text('Pickup start time:'),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Text(
+                        '${_selectedDateS.year}/${_selectedDateS.month.toString().padLeft(2, "0")}/${_selectedDateS.day.toString().padLeft(2, "0")} $_timeS'
+                    ),
+                    SizedBox(width: 15.0),
+                    RaisedButton(
+                        child: Text('CHANGE'),
+                        onPressed: () {
+                          FocusScope.of(context).requestFocus(new FocusNode());
+                          _selectTime(context);
+                          _selectDate(context);
+                        }
+                    )
+                  ],
+                ),
+                SizedBox(height: 7.5),
+                Text('Pickup end time:'),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Text(
+                        '${_selectedDateT.year}/${_selectedDateT.month.toString().padLeft(2, "0")}/${_selectedDateT.day.toString().padLeft(2, "0")} $_timeT'
+                    ),
+                    SizedBox(width: 15.0),
+                    RaisedButton(
+                        child: Text('CHANGE'),
+                        onPressed: () {
+                          FocusScope.of(context).requestFocus(new FocusNode());
+                          _selectTimeT(context);
+                          _selectDateT(context);
+                        }
+                    )
+                  ],
+                ),
+                SizedBox(height: 25.0),
+                IconButton(
+                  icon: Icon(Icons.camera_alt),
+                  onPressed: getImage,
+                ),
+                SizedBox(
+                  height: 150,
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _imgs.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return new Container(
+                        padding: EdgeInsets.only(left: 5.0, right: 5.0),
+                        child: Image.file(
+                          _imgs[index],
+                          height: 150,
+                          //width: 150,
+                        )
+                      );
+                    }
+                  ),
+                ),
+                SizedBox(height: 25.0),
+                RaisedButton(
+                    child: Text('SUBMIT'),
+                    onPressed: _submitForm
+                )
+              ]
+            )
+          )
+        ]
+      )
     );
   }
 
   void _showDialog(BuildContext context, String title, String body) {
     showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: new Text(title),
-            content: new Text(body),
-            actions: <Widget>[
-              new FlatButton(
-                child: new Text('Close'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pop();
-                  //Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        }
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: new Text(title),
+          content: new Text(body),
+          actions: <Widget>[
+            new FlatButton(
+              child: new Text('Close'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      }
     );
   }
 }

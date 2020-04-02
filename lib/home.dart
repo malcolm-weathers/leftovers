@@ -120,61 +120,57 @@ class HomeState extends State<Home> {
                       ),
                       SizedBox(height: 20.0),
                       Text('Your posted listings:'),
-                      Container(
-                        //decoration: BoxDecoration(border: Border.all(width: 2.0, color: Colors.blue)),
-                        constraints: BoxConstraints(maxHeight: 200),
-                        //height: 200,
-                        child: ListView.builder(
-                          shrinkWrap: true,
-                          itemCount: _listings.length,
-                          padding: EdgeInsets.only(left: 25.0, right: 25.0, top: 0.0, bottom: 0.0),
-                          itemBuilder: (BuildContext ctxt, int index) {
-                            return new ListTile(
-                              title: Text(
-                                _listings[index]['title'],
-                              ),
-                              subtitle: Text(
-                                _listings[index]['descr'],
-                              ),
-                              trailing: Icon(
-                                Icons.arrow_forward_ios,
-                              ),
-                              onTap: () {
-                                Navigator.push(context, new MaterialPageRoute(builder: (context) => new ViewMine(_email, _userData, _listings[index]['id'])));
-                              },
-                              leading: Image.memory(_listings[index]['img0']),
-                            );
-                          }
-                        ),
+                      SizedBox(height: 5.0),
+                      ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: _listings.length,
+                        padding: EdgeInsets.only(left: 25.0, right: 25.0, top: 0.0, bottom: 0.0),
+                        primary: false,
+                        itemBuilder: (BuildContext ctxt, int index) {
+                          return new ListTile(
+                            title: Text(
+                              _listings[index]['title'],
+                            ),
+                            subtitle: Text(
+                              _listings[index]['descr'],
+                            ),
+                            trailing: Icon(
+                              Icons.arrow_forward_ios,
+                            ),
+                            onTap: () {
+                              Navigator.push(context, new MaterialPageRoute(builder: (context) => new ViewMine(_email, _userData, _listings[index]['id'])));
+                            },
+                            leading: Image.memory(
+                              _listings[index]['img0'],
+                              fit: BoxFit.fill,
+                            )
+                          );
+                        }
                       ),
                       SizedBox(height: 20.0),
                       Text('Food you have claimed:'),
-                      Container(
-                        //decoration: BoxDecoration(border: Border.all(width: 2.0, color: Colors.blue)),
-                        constraints: BoxConstraints(maxHeight: 200),
-                        //height: 200,
-                        child: ListView.builder(
-                          shrinkWrap: true,
-                          itemCount: _claimedData.length,
-                          padding: EdgeInsets.only(left: 25.0, right: 25.0, top: 0.0, bottom: 0.0),
-                          itemBuilder: (BuildContext ctxt, int index) {
-
-                            return new ListTile(
-                              title: Text(
-                                _claimedData[index]['title'],
-                              ),
-                              subtitle: Text(
-                                  '(${_claimedData[index]["distance"]} miles) ${_claimedData[index]["descr"]}'
-                              ),
-                              trailing: Icon(
-                                Icons.arrow_forward_ios,
-                              ),
-                              onTap: () {
-                                Navigator.push(context, new MaterialPageRoute(builder: (context) => new ViewOther(_email, _userData, _userData['claimed'][index])));
-                              }
-                            );
-                          }
-                        ),
+                      SizedBox(height: 5.0),
+                      ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: _claimedData.length,
+                        padding: EdgeInsets.only(left: 25.0, right: 25.0, top: 0.0, bottom: 0.0),
+                        primary: false,
+                        itemBuilder: (BuildContext ctxt, int index) {
+                          return new ListTile(
+                            title: Text(
+                              _claimedData[index]['title'],
+                            ),
+                            subtitle: Text(
+                                '(${_claimedData[index]["distance"]} miles) ${_claimedData[index]["descr"]}'
+                            ),
+                            trailing: Icon(
+                              Icons.arrow_forward_ios,
+                            ),
+                            onTap: () {
+                              Navigator.push(context, new MaterialPageRoute(builder: (context) => new ViewOther(_email, _userData, _userData['claimed'][index])));
+                            }
+                          );
+                        }
                       ),
                     ]
                 )

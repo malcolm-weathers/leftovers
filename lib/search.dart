@@ -26,120 +26,151 @@ class SearchState extends State<Search> {
 
   SearchState(this._email, this._userData);
 
+  Future<int> _getLD() async {
+    for (var _x in _inRange) {
+      _x['img0'] = await authHandler.getImage0(_x['id']);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-          title: Text('Search listings')
-      ),
-      body: Padding(
-        padding: EdgeInsets.only(left: 15.0, right: 15.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  Flexible(
-                    child: TextFormField(
-                      decoration: const InputDecoration(
-                          icon: Icon(Icons.my_location),
-                          hintText: 'Latitude',
-                          labelText: 'Latitude'
-                      ),
-                      keyboardType: TextInputType.number,
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return 'Is blank!';
-                        }
-                        //_descr = value;
-                        return null;
-                      },
-                      controller: _txtLat,
+    return FutureBuilder<int>(
+      future: _getLD(),
+      builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          return Scaffold(
+            appBar: AppBar(
+                title: Text('Search listings')
+            ),
+            body: Padding(
+              padding: EdgeInsets.only(left: 15.0, right: 15.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        Flexible(
+                          child: TextFormField(
+                            decoration: const InputDecoration(
+                                icon: Icon(Icons.my_location),
+                                hintText: 'Latitude',
+                                labelText: 'Latitude'
+                            ),
+                            keyboardType: TextInputType.number,
+                            validator: (value) {
+                              if (value.isEmpty) {
+                                return 'Is blank!';
+                              }
+                              //_descr = value;
+                              return null;
+                            },
+                            controller: _txtLat,
+                          ),
+                        ),
+                        Flexible(
+                          child: TextFormField(
+                            decoration: const InputDecoration(
+                                icon: Icon(Icons.my_location),
+                                hintText: 'Longitude',
+                                labelText: 'Longitude'
+                            ),
+                            keyboardType: TextInputType.number,
+                            validator: (value) {
+                              if (value.isEmpty) {
+                                return 'Is blank!';
+                              }
+                              return null;
+                            },
+                            controller: _txtLon,
+                          ),
+                        ),
+                        FlatButton(
+                            child: Text('CURRENT'),
+                            onPressed: () {
+                              MyLocation _myLocation = new MyLocation();
+                              _myLocation.get().then((Map<String, double> _myLoc) {
+                                _txtLat.text = _myLoc['latitude'].toString();
+                                _txtLon.text = _myLoc['longitude'].toString();
+                              });
+                            }
+                        ),
+                      ],
                     ),
-                  ),
-                  Flexible(
-                    child: TextFormField(
-                      decoration: const InputDecoration(
-                          icon: Icon(Icons.my_location),
-                          hintText: 'Longitude',
-                          labelText: 'Longitude'
+                    Flexible(
+                      child: TextFormField(
+                        decoration: const InputDecoration(
+                            icon: Icon(Icons.airport_shuttle),
+                            hintText: 'Enter the distance to search from your location',
+                            labelText: 'Distance (miles)'
+                        ),
+                        keyboardType: TextInputType.number,
+                        validator: (value) {
+                          if (value.isEmpty) {
+                            return 'Cannot be blank!';
+                          }
+                          return null;
+                        },
+                        controller: _txtRad,
                       ),
-                      keyboardType: TextInputType.number,
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return 'Is blank!';
-                        }
-                        return null;
-                      },
-                      controller: _txtLon,
                     ),
-                  ),
-                  FlatButton(
-                      child: Text('CURRENT'),
-                      onPressed: () {
-                        MyLocation _myLocation = new MyLocation();
-                        _myLocation.get().then((Map<String, double> _myLoc) {
-                          _txtLat.text = _myLoc['latitude'].toString();
-                          _txtLon.text = _myLoc['longitude'].toString();
-                        });
-                      }
-                  ),
-                ],
-              ),
-              Flexible(
-                child: TextFormField(
-                  decoration: const InputDecoration(
-                      icon: Icon(Icons.airport_shuttle),
-                      hintText: 'Enter the distance to search from your location',
-                      labelText: 'Distance (miles)'
-                  ),
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (value.isEmpty) {
-                      return 'Cannot be blank!';
-                    }
-                    return null;
-                  },
-                  controller: _txtRad,
-                ),
-              ),
-              SizedBox(height: 10.0),
-              RaisedButton(
-                  child: Text('SEARCH'),
-                  onPressed: _submitForm
-              ),
-              SizedBox(height: 20.0),
-              ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: _inRange.length,
-                  padding: EdgeInsets.only(left: 25.0, right: 25.0, top: 0.0, bottom: 0.0),
-                  itemBuilder: (BuildContext ctxt, int index) {
-                    return new ListTile(
-                        title: Text(
-                          _inRange[index]['title'],
-                        ),
-                        subtitle: Text(
-                            '(${_inRange[index]["distance"]} miles) ${_inRange[index]["descr"]}'
-                        ),
-                        trailing: Icon(
-                          Icons.arrow_forward_ios,
-                        ),
-                        onTap: () {
-                          Navigator.push(context, new MaterialPageRoute(builder: (context) =>
-                          new ViewOther(_email, _userData, _inRange[index]['id'])));
+                    SizedBox(height: 10.0),
+                    RaisedButton(
+                        child: Text('SEARCH'),
+                        onPressed: _submitForm
+                    ),
+                    SizedBox(height: 20.0),
+                    ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: _inRange.length,
+                        padding: EdgeInsets.only(left: 25.0, right: 25.0, top: 0.0, bottom: 0.0),
+                        itemBuilder: (BuildContext ctxt, int index) {
+                          return new ListTile(
+                              title: Text(
+                                _inRange[index]['title'],
+                              ),
+                              subtitle: Text(
+                                  '(${_inRange[index]["distance"]} miles) ${_inRange[index]["descr"]}'
+                              ),
+                              trailing: Icon(
+                                Icons.arrow_forward_ios,
+                              ),
+                              onTap: () {
+                                Navigator.push(context, new MaterialPageRoute(builder: (context) =>
+                                new ViewOther(_email, _userData, _inRange[index]['id'])));
+                              },
+                              leading: Image.memory(
+                                _inRange[index]['img0'],
+                                fit: BoxFit.fill,
+                              )
+                          );
                         }
-                    );
-                  }
+                    ),
+                  ],
+                )
+              )
+            )
+          );
+        } else {
+          return Scaffold(
+              appBar: AppBar(
+                title: Text('Leftovers'),
               ),
-            ],
-          )
-        )
-      )
+              body: Container(
+                  alignment: Alignment.center,
+                  child: SizedBox(
+                    child: CircularProgressIndicator(),
+                    width: 60,
+                    height: 60,
+                  )
+              )
+          );
+        }
+      }
     );
   }
 

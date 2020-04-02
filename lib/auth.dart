@@ -98,6 +98,7 @@ class Auth {
   }
 
   Future<Uint8List> getImage0(String docID) async {
+    print('getting 0.jpg for $docID');
     StorageReference storage = FirebaseStorage().ref().child(docID+'/0.jpg');
     Uint8List x = await storage.getData(1024*1024*8);
     return x;
