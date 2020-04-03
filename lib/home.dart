@@ -52,13 +52,14 @@ class HomeState extends State<Home> {
           double _dist = (_lat - _olat).abs() * 69.2 + (_lon - _olon).abs() * 69.2;
           _dist = double.parse(_dist.toStringAsFixed(1));
           _data["distance"] = _dist;
-          _claimedData.add(_data);
-
-
+          await authHandler.getImage0(_x).then((var _y) {
+            _data['img0'] = _y;
+            _claimedData.add(_data);
+          });
         });
       }
     });
-
+    return 0;
   }
 
   @override
@@ -168,7 +169,11 @@ class HomeState extends State<Home> {
                             ),
                             onTap: () {
                               Navigator.push(context, new MaterialPageRoute(builder: (context) => new ViewOther(_email, _userData, _userData['claimed'][index])));
-                            }
+                            },
+                            leading: Image.memory(
+                              _claimedData[index]['img0'],
+                              fit: BoxFit.fill,
+                            )
                           );
                         }
                       ),

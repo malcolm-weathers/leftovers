@@ -84,17 +84,12 @@ class Auth {
     return _results;
   }
 
-  Future<int> uploadImages(String docID, List<File> images) async {
-    String _fbase = docID+'/';
-    int counter = 0;
-    for (File _image in images) {
-      String _fname = _fbase + counter.toString() + '.jpg';
-      StorageReference storage = FirebaseStorage().ref().child(_fname);
-      counter = counter + 1;
-
-      StorageUploadTask uploadTask = storage.putData(_image.readAsBytesSync());
-      await uploadTask.onComplete;
-    }
+  Future<int> uploadImage(String docID, File image) async {
+    String _fname = docID+'/0.jpg';
+    StorageReference storage = FirebaseStorage().ref().child(_fname);
+    StorageUploadTask uploadTask = storage.putData(image.readAsBytesSync());
+    await uploadTask.onComplete;
+    //}
   }
 
   Future<Uint8List> getImage0(String docID) async {
@@ -102,5 +97,11 @@ class Auth {
     StorageReference storage = FirebaseStorage().ref().child(docID+'/0.jpg');
     Uint8List x = await storage.getData(1024*1024*8);
     return x;
+  }
+
+  Future<int> imageDelete(String docID) async {
+    StorageReference _storage = FirebaseStorage().ref().child(docID+'/0.jpg');
+    await _storage.delete();
+    return 0;
   }
 }

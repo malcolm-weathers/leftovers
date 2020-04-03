@@ -30,6 +30,7 @@ class SearchState extends State<Search> {
     for (var _x in _inRange) {
       _x['img0'] = await authHandler.getImage0(_x['id']);
     }
+    return 0;
   }
 
   @override
@@ -123,11 +124,11 @@ class SearchState extends State<Search> {
                         child: Text('SEARCH'),
                         onPressed: _submitForm
                     ),
-                    SizedBox(height: 20.0),
+                    SizedBox(height: 40.0),
                     ListView.builder(
                         shrinkWrap: true,
                         itemCount: _inRange.length,
-                        padding: EdgeInsets.only(left: 25.0, right: 25.0, top: 0.0, bottom: 0.0),
+                        padding: EdgeInsets.only(left: 0.0, right: 0.0, top: 0.0, bottom: 0.0),
                         itemBuilder: (BuildContext ctxt, int index) {
                           return new ListTile(
                               title: Text(

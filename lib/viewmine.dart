@@ -225,6 +225,7 @@ class ViewMineState extends State<ViewMine> {
                   child: new Text('Delete'),
                   onPressed: () {
                     authHandler.listingDelete(_id);
+                    authHandler.imageDelete(_id);
                     Navigator.of(context).pop();
                     Navigator.of(context).pop();
                   }

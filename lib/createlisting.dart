@@ -17,53 +17,30 @@ class CreateListing extends StatefulWidget {
 }
 
 class CreateListingState extends State<CreateListing> {
-  String _email;
-  String _title, _descr;
+  String _email, _title, _descr;
+  File _image;
   int _quantity, _limit;
   double _lat, _lon;
-
-  List<File> _imgs = [];
 
   final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
   var txtLat = TextEditingController();
   var txtLon = TextEditingController();
   Auth authHandler = new Auth();
 
-  String _timeS, _timeT;
-
-  DateTime _selectedDateS = DateTime.now();
-  DateTime _selectedDateT = DateTime.now();
-  TimeOfDay _selectedTimeS = TimeOfDay.now();
-  TimeOfDay _selectedTimeT = TimeOfDay.now();
+  DateTime _start = DateTime.now(), _finish = DateTime.now().add(Duration(hours: 1));
+  String _startS, _finishS;
 
   CreateListingState(String email) {
     _email = email;
-
-    TimeOfDay tt = _selectedTimeS.replacing(hour: _selectedTimeS.hourOfPeriod);
-
-    if (_selectedTimeS.hour < 12) {
-      _timeS = '${tt.hour}:${tt.minute.toString().padLeft(2, "0")} AM';
-    } else {
-      _timeS = '${tt.hour}:${tt.minute.toString().padLeft(2, "0")} PM';
-    }
-    tt = _selectedTimeT.replacing(hour: _selectedTimeT.hourOfPeriod);
-    if (_selectedTimeT.hour < 12) {
-      _timeT = '${tt.hour}:${tt.minute.toString().padLeft(2, "0")} AM';
-    } else {
-      _timeT = '${tt.hour}:${tt.minute.toString().padLeft(2, "0")} PM';
-    }
+    _setTimeStrings();
   }
 
   void _submitForm() {
     final FormState form = _formKey.currentState;
-    DateTime _dss = DateTime.utc(_selectedDateS.year, _selectedDateS.month, _selectedDateS.day,
-        _selectedTimeS.hour, _selectedTimeS.minute).toLocal().add(Duration(hours:5));
-    DateTime _dst = DateTime.utc(_selectedDateT.year, _selectedDateT.month, _selectedDateT.day,
-        _selectedTimeT.hour, _selectedTimeT.minute).toLocal().add(Duration(hours:5));
-    if (_dss.millisecondsSinceEpoch > _dst.millisecondsSinceEpoch + 3600000 && _imgs.length > 0) {
+    if (_start.millisecondsSinceEpoch > _finish.millisecondsSinceEpoch + 3600000 && _image != null) {
       print('End time must be at least an hour after start time');
       print('At least one image must be uploaded');
-    } else if (form.validate() && _timeS != null && _timeT != null) {
+    } else if (form.validate()) {
       form.save();
 
       Map<String, dynamic> newListing = {
@@ -76,14 +53,13 @@ class CreateListingState extends State<CreateListing> {
           'latitude': _lat,
           'longitude': _lon
         },
-        'time_s': _dss.millisecondsSinceEpoch / 1000,
-        'time_t': _dst.millisecondsSinceEpoch / 1000,
+        'time_s': _start.millisecondsSinceEpoch / 1000,
+        'time_t': _finish.millisecondsSinceEpoch / 1000,
         'claimed': {},
       };
 
       authHandler.listingSet(null, newListing).then((String docID) {
-        //_showDialog(context, 'Listing created', '');
-        authHandler.uploadImages(docID, _imgs).then((int value) {
+        authHandler.uploadImage(docID, _image).then((int value) {
           _showDialog(context, 'Listing created', '');
         });
       });
@@ -92,73 +68,105 @@ class CreateListingState extends State<CreateListing> {
     }
   }
 
+  void _setTimeStrings() {
+    String _hourS, _hourT, _amS, _amT;
+
+    if (_start.hour == 0) {
+      _hourS = '12';
+      _amS = 'AM';
+    } else if (_start.hour >= 12) {
+      _amS = 'PM';
+      if (_start.hour > 12) {
+        _hourS = (_start.hour - 12).toString();
+      } else {
+        _hourS = _start.hour.toString();
+      }
+    } else {
+      _hourS = _start.hour.toString();
+      _amS = 'AM';
+    }
+
+    if (_finish.hour == 0) {
+      _hourT = '12';
+      _amT = 'AM';
+    } else if (_finish.hour >= 12) {
+      _amT = 'PM';
+      if (_finish.hour > 12) {
+        _hourT = (_finish.hour - 12).toString();
+      } else {
+        _hourT = _finish.hour.toString();
+      }
+    } else {
+      _hourT = _finish.hour.toString();
+      _amT = 'AM';
+    }
+
+    _startS = '${_start.year}/${_start.month.toString().padLeft(2,"0")}/${_start.day.toString().padLeft(2,"0")} $_hourS:${_start.minute.toString().padLeft(2,"0")} $_amS';
+    _finishS = '${_finish.year}/${_finish.month.toString().padLeft(2,"0")}/${_finish.day.toString().padLeft(2,"0")} $_hourT:${_finish.minute.toString().padLeft(2,"0")} $_amT';
+  }
+
   Future<void> _selectDate(BuildContext context) async {
     final DateTime picked = await showDatePicker(
         context: context,
-        initialDate: _selectedDateS,
-        firstDate: DateTime.now().subtract(Duration(days: 1)),// DateTime(2015, 8),
-        lastDate: DateTime.now().add(Duration(days: 7)));
-    if (picked != null && picked != _selectedDateS)
+        initialDate: _start,
+        firstDate: DateTime.now().subtract(Duration(hours: 1)),
+        lastDate: DateTime.now().add(Duration(days: 7))
+    );
+    if (picked != null)
       setState(() {
-        _selectedDateS = picked;
+        _start = picked;
+        _setTimeStrings();
       });
   }
 
   Future<void> _selectDateT(BuildContext context) async {
     final DateTime picked = await showDatePicker(
         context: context,
-        initialDate: _selectedDateT,
-        firstDate: DateTime.now().subtract(Duration(days: 1)),// DateTime(2015, 8),
+        initialDate: _finish,
+        firstDate: DateTime.now().subtract(Duration(hours: 1)),
         lastDate: DateTime.now().add(Duration(days: 7)));
-    if (picked != null && picked != _selectedDateT)
+    if (picked != null)
       setState(() {
-        _selectedDateT = picked;
+        _finish = picked;
+        _setTimeStrings();
       });
   }
 
   Future<void> _selectTime(BuildContext context) async {
     final TimeOfDay picked = await showTimePicker(
       context: context,
-      initialTime: _selectedTimeS,
+      initialTime: TimeOfDay.now(),
     );
-    if (picked != null && picked != _selectedTimeS)
+    if (picked != null) {
       setState(() {
-        _selectedTimeS = picked;
-        TimeOfDay tt = _selectedTimeS.replacing(hour: _selectedTimeS.hourOfPeriod);
-        if (_selectedTimeS.hour < 12) {
-          _timeS = '${tt.hour}:${tt.minute.toString().padLeft(2, "0")} AM';
-        } else {
-          _timeS = '${tt.hour}:${tt.minute.toString().padLeft(2, "0")} PM';
-        }
+        _start = DateTime.utc(_start.year, _start.month, _start.day, picked.hour, picked.minute);
+        _setTimeStrings();
       });
+    }
   }
 
   Future<void> _selectTimeT(BuildContext context) async {
     final TimeOfDay picked = await showTimePicker(
       context: context,
-      initialTime: _selectedTimeT,
+      initialTime: TimeOfDay.now().replacing(hour: TimeOfDay.now().hour + 1),
     );
-    if (picked != null && picked != _selectedTimeT)
+    if (picked != null) {
       setState(() {
-        _selectedTimeT = picked;
-        TimeOfDay tt = _selectedTimeT.replacing(hour: _selectedTimeT.hourOfPeriod);
-        if (_selectedTimeT.hour < 12) {
-          _timeT = '${tt.hour}:${tt.minute.toString().padLeft(2, "0")} AM';
-        } else {
-          _timeT = '${tt.hour}:${tt.minute.toString().padLeft(2, "0")} PM';
-        }
+        _finish = DateTime.utc(_finish.year, _finish.month, _finish.day, picked.hour, picked.minute);
+        _setTimeStrings();
       });
+    }
   }
 
   Future getImage() async {
-    File _image = await imagepicker.ImagePicker.pickImage(
+    File _x = await imagepicker.ImagePicker.pickImage(
       source: imagepicker.ImageSource.gallery,
     );
-    if (_image == null) {
+    if (_x == null) {
       return;
     }
     File _cropped = await ImageCropper.cropImage(
-      sourcePath: _image.path,
+      sourcePath: _x.path,
       aspectRatio: CropAspectRatio(ratioX: 1.0, ratioY: 1.0),
       maxHeight: 600,
       maxWidth: 600,
@@ -167,7 +175,7 @@ class CreateListingState extends State<CreateListing> {
       return;
     }
     setState(() {
-      _imgs.add(_cropped);
+      _image = _cropped;
     });
   }
 
@@ -188,36 +196,36 @@ class CreateListingState extends State<CreateListing> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
                 TextFormField(
-                    decoration: const InputDecoration(
-                        icon: Icon(Icons.fastfood),
-                        hintText: 'Pick a short but descriptive title',
-                        labelText: 'Listing title'
-                    ),
-                    textCapitalization: TextCapitalization.words,
-                    validator: (value) {
-                      if (value.isEmpty) {
-                        return 'Cannot be blank';
-                      }
-                      _title = value;
-                      return null;
+                  decoration: const InputDecoration(
+                    icon: Icon(Icons.fastfood),
+                    hintText: 'Pick a short but descriptive title',
+                    labelText: 'Listing title'
+                  ),
+                  textCapitalization: TextCapitalization.words,
+                  validator: (value) {
+                    if (value.isEmpty) {
+                      return 'Cannot be blank';
                     }
+                    _title = value;
+                    return null;
+                  }
                 ),
                 TextFormField(
-                    decoration: const InputDecoration(
-                        icon: Icon(Icons.description),
-                        hintText: 'Additional details',
-                        labelText: 'Listing description'
-                    ),
-                    keyboardType: TextInputType.multiline,
-                    maxLines: null,
-                    textCapitalization: TextCapitalization.sentences,
-                    validator: (value) {
-                      if (value.isEmpty) {
-                        return 'Cannot be blank';
-                      }
-                      _descr = value;
-                      return null;
+                  decoration: const InputDecoration(
+                    icon: Icon(Icons.description),
+                    hintText: 'Additional details',
+                    labelText: 'Listing description'
+                  ),
+                  keyboardType: TextInputType.multiline,
+                  maxLines: null,
+                  textCapitalization: TextCapitalization.sentences,
+                  validator: (value) {
+                    if (value.isEmpty) {
+                      return 'Cannot be blank';
                     }
+                    _descr = value;
+                    return null;
+                  }
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -226,9 +234,9 @@ class CreateListingState extends State<CreateListing> {
                     Flexible(
                       child: TextFormField(
                         decoration: const InputDecoration(
-                            icon: Icon(Icons.equalizer),
-                            labelText: 'Quantity',
-                            hintText: '# of portions'
+                          icon: Icon(Icons.equalizer),
+                          labelText: 'Quantity',
+                          hintText: '# of portions'
                         ),
                         keyboardType: TextInputType.number,
                         validator: (value){
@@ -244,24 +252,25 @@ class CreateListingState extends State<CreateListing> {
                       ),
                     ),
                     Flexible(
-                        child: TextFormField(
-                          decoration: const InputDecoration(
-                              icon: Icon(Icons.person),
-                              labelText: 'Limit/person',
-                              hintText: '0 for no limit'
-                          ),
-                          keyboardType: TextInputType.number,
-                          validator: (value) {
-                            if (value == '') {
-                              return 'Cannot be blank';
-                            }
-                            if (int.parse(value) < 0) {
-                              return 'Cannot be negative. Use 0 for no limit';
-                            }
-                            _limit = int.parse(value);
+                      child: TextFormField(
+                        decoration: const InputDecoration(
+                          icon: Icon(Icons.person),
+                          labelText: 'Limit/person',
+                          hintText: 'Blank for no limit'
+                        ),
+                        keyboardType: TextInputType.number,
+                        validator: (value) {
+                          if (value == '') {
+                            _limit = 0;
                             return null;
-                          },
-                        )
+                          }
+                          if (int.parse(value) < 0) {
+                            return 'Cannot be negative. Use 0 for no limit';
+                          }
+                          _limit = int.parse(value);
+                          return null;
+                        },
+                      )
                     )
                   ],
                 ),
@@ -289,22 +298,22 @@ class CreateListingState extends State<CreateListing> {
                       ),
                     ),
                     Flexible(
-                        child: TextFormField(
-                          decoration: const InputDecoration(
-                              icon: Icon(Icons.location_on),
-                              labelText: 'Longitude',
-                              hintText: 'Longitude'
-                          ),
-                          keyboardType: TextInputType.number,
-                          validator: (value) {
-                            if (value == '') {
-                              return 'Cannot be blank';
-                            }
-                            _lon = double.parse(value);
-                            return null;
-                          },
-                          controller: txtLon,
-                        )
+                      child: TextFormField(
+                        decoration: const InputDecoration(
+                          icon: Icon(Icons.location_on),
+                          labelText: 'Longitude',
+                          hintText: 'Longitude'
+                        ),
+                        keyboardType: TextInputType.number,
+                        validator: (value) {
+                          if (value == '') {
+                            return 'Cannot be blank';
+                          }
+                          _lon = double.parse(value);
+                          return null;
+                        },
+                        controller: txtLon,
+                      )
                     )
                   ],
                 ),
@@ -325,9 +334,7 @@ class CreateListingState extends State<CreateListing> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
-                    Text(
-                        '${_selectedDateS.year}/${_selectedDateS.month.toString().padLeft(2, "0")}/${_selectedDateS.day.toString().padLeft(2, "0")} $_timeS'
-                    ),
+                    Text('$_startS'),
                     SizedBox(width: 15.0),
                     RaisedButton(
                         child: Text('CHANGE'),
@@ -345,9 +352,7 @@ class CreateListingState extends State<CreateListing> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
-                    Text(
-                        '${_selectedDateT.year}/${_selectedDateT.month.toString().padLeft(2, "0")}/${_selectedDateT.day.toString().padLeft(2, "0")} $_timeT'
-                    ),
+                    Text('$_finishS'),
                     SizedBox(width: 15.0),
                     RaisedButton(
                         child: Text('CHANGE'),
@@ -364,24 +369,32 @@ class CreateListingState extends State<CreateListing> {
                   icon: Icon(Icons.camera_alt),
                   onPressed: getImage,
                 ),
-                SizedBox(
-                  height: 150,
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    scrollDirection: Axis.horizontal,
-                    itemCount: _imgs.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      return new Container(
-                        padding: EdgeInsets.only(left: 5.0, right: 5.0),
-                        child: Image.file(
-                          _imgs[index],
-                          height: 150,
-                          //width: 150,
-                        )
-                      );
-                    }
-                  ),
+                Container(
+                  child: _image == null ? Image.asset('assets/icon.png',height:150) : Image.file(_image,height:150)
                 ),
+                /*SizedBox(
+                  height: 150.0,
+                  child: FadeInImage.memoryNetwork(
+                    placeholder: 'assets/icon.png',
+                    image: _imagePath,
+                  ),
+                ),*/
+
+                /*ListView.builder(
+                  shrinkWrap: true,
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _imgs.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    return new Container(
+                      padding: EdgeInsets.only(left: 5.0, right: 5.0),
+                      child: Image.file(
+                        _imgs[index],
+                        height: 150,
+                        //width: 150,
+                      )
+                    );
+                  }
+                ),*/
                 SizedBox(height: 25.0),
                 RaisedButton(
                     child: Text('SUBMIT'),

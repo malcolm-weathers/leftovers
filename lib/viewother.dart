@@ -154,11 +154,11 @@ class ViewOtherState extends State<ViewOther> {
                               if (int.parse(value) < 0) {
                                 return 'Cannot be negative';
                               }
-                              if (int.parse(value) > _listingData['limit']) {
-                                return 'Limit is ${_listingData["limit"]}';
-                              }
                               if (int.parse(value) > _remaining) {
                                 return 'Not enough left';
+                              }
+                              if (int.parse(value) > _listingData['limit'] && _listingData['limit'] != 0) {
+                                return 'Limit is ${_listingData["limit"]}';
                               }
                               return null;
                             }
@@ -173,17 +173,18 @@ class ViewOtherState extends State<ViewOther> {
                         RaisedButton(
                           child: Text('CANCEL'),
                           onPressed: () {
-                            int _amt = int.parse(_txtClaim.text);
+                            _showHome(context, 'Reservation deletion', 'If you confirm, your reservation will be deleted.');
+                            /*int _amt = int.parse(_txtClaim.text);
                             if (_amt != 0) {
                               _listingData['claimed'].remove(_email);
                               _userData['claimed'].remove(_id);
                               authHandler.userDataSet(_email, _userData);
                               authHandler.listingSet(_id, _listingData).then((value) {
-                                _showHome(context, 'Reservation deletion', 'If you confirm, your reservation will be deleted.');
+
                               });
                             } else {
                               Navigator.of(context).pop();
-                            }
+                            }*/
                           }
                         )
                       ],
@@ -229,12 +230,13 @@ class ViewOtherState extends State<ViewOther> {
       }
 
       if (_amt == 0 && _listingData['claimed'].containsKey(_email)) {
-        _listingData['claimed'].remove(_email);
+        _showHome(context, 'Reservation deletion', 'If you confirm, your reservation will be deleted.');
+        /*_listingData['claimed'].remove(_email);
         _userData['claimed'].remove(_id);
         authHandler.userDataSet(_email, _userData);
         authHandler.listingSet(_id, _listingData).then((value){
           _showHome(context, 'Reservation deletion', 'If you confirm, your reservation will be deleted.');
-        });
+        });*/
       } else if (_amt != 0 && _listingData['claimed'].containsKey(_email)) {
         _listingData['claimed'][_email] = {
           'no': _amt,
@@ -298,9 +300,14 @@ class ViewOtherState extends State<ViewOther> {
               new RaisedButton(
                 child: new Text('Confirm'),
                 onPressed: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pop();
-                  Navigator.push(context, new MaterialPageRoute(builder: (context) => new Home(_email)));
+                  _listingData['claimed'].remove(_email);
+                  _userData['claimed'].remove(_id);
+                  authHandler.userDataSet(_email, _userData);
+                  authHandler.listingSet(_id, _listingData).then((value) {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop();
+                    //Navigator.push(context, new MaterialPageRoute(builder: (context) => new Home(_email)));
+                  });
                 },
               ),
               new RaisedButton(
