@@ -66,132 +66,132 @@ class ViewMineState extends State<ViewMine> {
           if (snapshot.connectionState == ConnectionState.done) {
             print('Listing is: $_listingData');
             return Scaffold(
-                appBar: AppBar(
-                  title: Text(_listingData['title']),
-                ),
-                body: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
+              appBar: AppBar(
+                title: Text(_listingData['title']),
+              ),
+              body: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  ListView(
+                    shrinkWrap: true,
+                    padding: EdgeInsets.only(left: 10.0, right: 10.0, top: 0.0, bottom: 0.0),
                     children: <Widget>[
-                      ListView(
-                        shrinkWrap: true,
-                        padding: EdgeInsets.only(left: 10.0, right: 10.0, top: 0.0, bottom: 0.0),
-                        children: <Widget>[
-                          Text(
-                            _listingData['descr'],
-                            style: TextStyle(
-                                fontSize: 20.0
-                            ),
-                            textAlign: TextAlign.center,
+                      Text(
+                        _listingData['descr'],
+                        style: TextStyle(
+                            fontSize: 20.0
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 15.0),
+                      Text(
+                        'Total: ${_listingData["quantity"]} ($_remaining remaining)',
+                        textAlign: TextAlign.center,
+                      ),
+                      Text(
+                        'Limit/person: ${_listingData["limit"]}',
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 15.0),
+                      Text(
+                        'Latitude: ${_listingData["location"]["latitude"]}\nLongitude: ${_listingData["location"]["longitude"]}',
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 15.0),
+                      Icon(
+                        Icons.access_time,
+                      ),
+                      Text(
+                        '$_timeS\n-\n$_timeT',
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 10.0),
+                      FlatButton(
+                          child: Text(
+                              'DELETE LISTING'
                           ),
-                          SizedBox(height: 15.0),
-                          Text(
-                            'Total: ${_listingData["quantity"]} ($_remaining remaining)',
-                            textAlign: TextAlign.center,
-                          ),
-                          Text(
-                            'Limit/person: ${_listingData["limit"]}',
-                            textAlign: TextAlign.center,
-                          ),
-                          SizedBox(height: 15.0),
-                          Text(
-                            'Latitude: ${_listingData["location"]["latitude"]}\nLongitude: ${_listingData["location"]["longitude"]}',
-                            textAlign: TextAlign.center,
-                          ),
-                          SizedBox(height: 15.0),
-                          Icon(
-                            Icons.access_time,
-                          ),
-                          Text(
-                            '$_timeS\n-\n$_timeT',
-                            textAlign: TextAlign.center,
-                          ),
-                          SizedBox(height: 10.0),
-                          FlatButton(
-                              child: Text(
-                                  'DELETE LISTING'
-                              ),
-                              onPressed: () {
-                                _showDialog(context, 'Are you sure?', 'Once a listing is deleted, you cannot get it back.');
-                              }
-                          ),
-                          SizedBox(height: 20.0),
-                          ListView.builder(
-                              shrinkWrap: true,
-                              itemCount: _listingData['claimed'].length,
-                              padding: EdgeInsets.only(left: 25.0, right: 25.0, top: 0.0, bottom: 0.0),
-                              itemBuilder: (BuildContext ctxt, int index) {
-                                var _u = _listingData['claimed'].keys.elementAt(index);
-                                Color _color;
-                                bool _vis0 = false, _vis1 = false;
-                                if (_listingData['claimed'][_u]['status'] == 'reserved') {
-                                  _color = Colors.black;
-                                  _vis0 = true;
-                                } else if (_listingData['claimed'][_u]['status'] == 'received') {
-                                  _color = Colors.green;
-                                  _vis1 = true;
-                                } else if (_listingData['claimed'][_u]['status'] == 'cancelled') {
-                                  _color = Colors.red;
-                                  _vis1 = true;
-                                }
-                                return new Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: <Widget>[
-                                    Text(
-                                      "$_u: ${_listingData['claimed'][_u]['no'].toString()}",
-                                      textScaleFactor: 1.1,
-                                      style: TextStyle(
-                                        color: _color,
-                                      ),
+                          onPressed: () {
+                            _showDialog(context, 'Are you sure?', 'Once a listing is deleted, you cannot get it back.');
+                          }
+                      ),
+                      SizedBox(height: 20.0),
+                      ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: _listingData['claimed'].length,
+                          padding: EdgeInsets.only(left: 25.0, right: 25.0, top: 0.0, bottom: 0.0),
+                          itemBuilder: (BuildContext ctxt, int index) {
+                            var _u = _listingData['claimed'].keys.elementAt(index);
+                            Color _color;
+                            bool _vis0 = false, _vis1 = false;
+                            if (_listingData['claimed'][_u]['status'] == 'reserved') {
+                              _color = Colors.black;
+                              _vis0 = true;
+                            } else if (_listingData['claimed'][_u]['status'] == 'received') {
+                              _color = Colors.green;
+                              _vis1 = true;
+                            } else if (_listingData['claimed'][_u]['status'] == 'cancelled') {
+                              _color = Colors.red;
+                              _vis1 = true;
+                            }
+                            return new Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: <Widget>[
+                                Text(
+                                  "$_u: ${_listingData['claimed'][_u]['no'].toString()}",
+                                  textScaleFactor: 1.1,
+                                  style: TextStyle(
+                                    color: _color,
+                                  ),
+                                ),
+                                Visibility(
+                                    child: IconButton(
+                                      icon: Icon(Icons.check_circle),
+                                      onPressed: (){
+                                        _listingData['claimed'][_u]['status'] = 'received';
+                                        authHandler.listingSet(_id, _listingData).then((value){
+                                          Navigator.of(context).pop();
+                                          Navigator.push(context, new MaterialPageRoute(builder: (context) => new ViewMine(_email, _userData, _id)));
+                                        });
+                                      },
                                     ),
-                                    Visibility(
-                                        child: IconButton(
-                                          icon: Icon(Icons.check_circle),
-                                          onPressed: (){
-                                            _listingData['claimed'][_u]['status'] = 'received';
-                                            authHandler.listingSet(_id, _listingData).then((value){
-                                              Navigator.of(context).pop();
-                                              Navigator.push(context, new MaterialPageRoute(builder: (context) => new ViewMine(_email, _userData, _id)));
-                                            });
-                                          },
-                                        ),
-                                        visible: _vis0
+                                    visible: _vis0
+                                ),
+                                Visibility(
+                                    child: IconButton(
+                                      icon: Icon(Icons.cancel),
+                                      onPressed: (){
+                                        _listingData['claimed'][_u]['status'] = 'cancelled';
+                                        authHandler.listingSet(_id, _listingData).then((value){
+                                          Navigator.of(context).pop();
+                                          Navigator.push(context, new MaterialPageRoute(builder: (context) => new ViewMine(_email, _userData, _id)));
+                                        });
+                                      },
                                     ),
-                                    Visibility(
-                                        child: IconButton(
-                                          icon: Icon(Icons.cancel),
-                                          onPressed: (){
-                                            _listingData['claimed'][_u]['status'] = 'cancelled';
-                                            authHandler.listingSet(_id, _listingData).then((value){
-                                              Navigator.of(context).pop();
-                                              Navigator.push(context, new MaterialPageRoute(builder: (context) => new ViewMine(_email, _userData, _id)));
-                                            });
-                                          },
-                                        ),
-                                        visible: _vis0
-                                    ),
-                                    Visibility(
-                                      child: IconButton(
-                                        icon: Icon(Icons.undo),
-                                        onPressed: (){
-                                          _listingData['claimed'][_u]['status'] = 'reserved';
-                                          authHandler.listingSet(_id, _listingData).then((value){
-                                            Navigator.of(context).pop();
-                                            Navigator.push(context, new MaterialPageRoute(builder: (context) => new ViewMine(_email, _userData, _id)));
-                                          });
-                                        },
-                                      ),
-                                      visible: _vis1
-                                    ),
-                                  ],
-                                );
-                              }
-                          ),
-                        ],
-                      )
-                    ]
-                )
+                                    visible: _vis0
+                                ),
+                                Visibility(
+                                  child: IconButton(
+                                    icon: Icon(Icons.undo),
+                                    onPressed: (){
+                                      _listingData['claimed'][_u]['status'] = 'reserved';
+                                      authHandler.listingSet(_id, _listingData).then((value){
+                                        Navigator.of(context).pop();
+                                        Navigator.push(context, new MaterialPageRoute(builder: (context) => new ViewMine(_email, _userData, _id)));
+                                      });
+                                    },
+                                  ),
+                                  visible: _vis1
+                                ),
+                              ],
+                            );
+                          }
+                      ),
+                    ],
+                  )
+                ]
+              )
             );
 
           } else {

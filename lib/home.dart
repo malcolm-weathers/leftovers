@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'package:leftovers/auth.dart';
@@ -104,20 +105,37 @@ class HomeState extends State<Home> {
                           ],
                         ),
                       ),
-                      SizedBox(height: 20.0),
-                      Text('Welcome, ${_userData["name"]}'),
+                      Text('Welcome, ${_userData["name"]}', textAlign: TextAlign.center,),
                       SizedBox(height: 20.0),
                       RaisedButton(
-                          onPressed: (){
-                            Navigator.push(context, new MaterialPageRoute(builder: (context) => new CreateListing(_email)));
-                          },
-                          child: Text('CREATE LISTING')
+                        onPressed: (){
+                          Navigator.push(context, new MaterialPageRoute(builder: (context) => new CreateListing(_email)));
+                        },
+                        //child: Text('CREATE LISTING')
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: <Widget>[
+                            Icon(Icons.add),
+                            SizedBox(width: 5),
+                            Text('DONATE FOOD')
+                          ],
+                        )
                       ),
                       RaisedButton(
-                          onPressed: (){
-                            Navigator.push(context, new MaterialPageRoute(builder: (context) => new Search(_email, _userData)));
-                          },
-                          child: Text('FIND FOOD')
+                        onPressed: (){
+                          Navigator.push(context, new MaterialPageRoute(builder: (context) => new Search(_email, _userData)));
+                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: <Widget>[
+                            Icon(Icons.shopping_cart),
+                            SizedBox(width: 13),
+                            Text('FIND FOOD')
+                          ],
+                        )
+                          //child: Text('FIND FOOD')
                       ),
                       SizedBox(height: 20.0),
                       Text('Your posted listings:'),

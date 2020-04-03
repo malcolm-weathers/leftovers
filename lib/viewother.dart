@@ -1,9 +1,9 @@
 import 'dart:typed_data';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:leftovers/auth.dart';
-import 'package:leftovers/home.dart';
 
 class ViewOther extends StatefulWidget {
   final String _email, _id;
@@ -17,13 +17,14 @@ class ViewOtherState extends State<ViewOther> {
   String _email, _id;
   Map<String, dynamic> _userData, _listingData;
   int _remaining;
-  String _timeS, _timeT;
   Auth authHandler = new Auth();
 
   final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
   final TextEditingController _txtClaim = new TextEditingController();
-
   List<Uint8List> _images = [];
+
+  DateTime _start, _finish;
+  String _startS, _finishS;
 
   ViewOtherState(this._email, this._userData, this._id);
 
@@ -42,28 +43,9 @@ class ViewOtherState extends State<ViewOther> {
         _txtClaim.text = '0';
       }
 
-      DateTime ds = DateTime.fromMillisecondsSinceEpoch(_listingData['time_s'].round()*1000).toLocal();
-      TimeOfDay ts = TimeOfDay(hour: ds.hour, minute: ds.minute);
-      TimeOfDay ts2 = ts.replacing(hour: ts.hourOfPeriod);
-
-      String _ampm;
-      if (ds.hour < 12) {
-        _ampm = 'AM';
-      } else {
-        _ampm = 'PM';
-      }
-      _timeS = '${ds.year}/${ds.month.toString().padLeft(2, '0')}/${ds.day.toString().padLeft(2, '0')} ${ts2.hour}:${ts2.minute.toString().padLeft(2, '0')} $_ampm';
-
-      DateTime dt = DateTime.fromMillisecondsSinceEpoch(_listingData['time_t'].round()*1000).toLocal();
-      TimeOfDay tt = TimeOfDay(hour: dt.hour, minute: dt.minute);
-      TimeOfDay tt2 = ts.replacing(hour: tt.hourOfPeriod);
-
-      if (dt.hour < 12) {
-        _ampm = 'AM';
-      } else {
-        _ampm = 'PM';
-      }
-      _timeT = '${dt.year}/${dt.month.toString().padLeft(2, '0')}/${dt.day.toString().padLeft(2, '0')} ${tt2.hour}:${tt2.minute.toString().padLeft(2, '0')} $_ampm';
+      _start = DateTime.fromMillisecondsSinceEpoch(_listingData['time_s'].round()*1000);
+      _finish = DateTime.fromMillisecondsSinceEpoch(_listingData['time_t'].round()*1000);
+      _setTimeStrings();
 
       _images.clear();
       await authHandler.getImage0(_id).then((Uint8List _img) {
@@ -74,7 +56,43 @@ class ViewOtherState extends State<ViewOther> {
     return 0;
   }
 
-  @override
+  void _setTimeStrings() {
+    String _hourS, _hourT, _amS, _amT;
+
+    if (_start.hour == 0) {
+      _hourS = '12';
+      _amS = 'AM';
+    } else if (_start.hour >= 12) {
+      _amS = 'PM';
+      if (_start.hour > 12) {
+        _hourS = (_start.hour - 12).toString();
+      } else {
+        _hourS = _start.hour.toString();
+      }
+    } else {
+      _hourS = _start.hour.toString();
+      _amS = 'AM';
+    }
+
+    if (_finish.hour == 0) {
+      _hourT = '12';
+      _amT = 'AM';
+    } else if (_finish.hour >= 12) {
+      _amT = 'PM';
+      if (_finish.hour > 12) {
+        _hourT = (_finish.hour - 12).toString();
+      } else {
+        _hourT = _finish.hour.toString();
+      }
+    } else {
+      _hourT = _finish.hour.toString();
+      _amT = 'AM';
+    }
+    _startS = '${_start.year}/${_start.month.toString().padLeft(2, "0")}/${_start.day.toString().padLeft(2, "0")} $_hourS:${_start.minute.toString().padLeft(2, "0")} $_amS';
+    _finishS = '${_finish.year}/${_finish.month.toString().padLeft(2, "0")}/${_finish.day.toString().padLeft(2, "0")} $_hourT:${_finish.minute.toString().padLeft(2, "0")} $_amT';
+  }
+
+    @override
   Widget build(BuildContext context) {
     return FutureBuilder<int>(
       future: _getLD(),
@@ -105,90 +123,106 @@ class ViewOtherState extends State<ViewOther> {
                 Text(
                   _listingData['descr'],
                   style: TextStyle(
-                    fontSize: 14.0,
+                    fontSize: 15.0,
                   ),
                   textAlign: TextAlign.center,
                 ),
                 SizedBox(height: 15.0),
                 Text(
-                  'Total: ${_listingData["quantity"]} ($_remaining remaining)',
+                  'Location:\n${_listingData["location"]["latitude"].toStringAsFixed(2)}\u00B0N, ${_listingData["location"]["longitude"].toStringAsFixed(2)}\u00B0W',
                   textAlign: TextAlign.center,
                 ),
+                RaisedButton(
+                  child: Text('COPY TO CLIPBOARD'),
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: '${_listingData["location"]["latitude"]}, ${_listingData["location"]["longitude"]}'));
+                  }
+                ),
                 Text(
-                  'Limit/person: ${_listingData["limit"]}',
+                    'Copy the coordinates and paste into a maps app (Google Maps, Apple Maps, etc).',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 12.0,
+                    )
+                ),
+                SizedBox(height: 15.0),
+                Text(
+                  'Pickup time:\n$_startS\nto\n$_finishS',
                   textAlign: TextAlign.center,
                 ),
                 SizedBox(height: 15.0),
                 Text(
-                  'Latitude: ${_listingData["location"]["latitude"]}\nLongitude: ${_listingData["location"]["longitude"]}',
+                  '$_remaining out of ${_listingData["quantity"]} remaining',
                   textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16.0,
+                  )
                 ),
-                SizedBox(height: 15.0),
-                Text(
-                  'Pickup time:\n$_timeS\nto\n$_timeT',
-                  textAlign: TextAlign.center,
-                ),
+                _listingData['limit'] == 0 ? Text('Limit/person: None!',textAlign: TextAlign.center) : Text('Limit/person: ${_listingData["limit"]}',textAlign:TextAlign.center),
                 SizedBox(height: 20.0),
                 Form(
-                    key: _formKey,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        Flexible(
-                          child: TextFormField(
-                            decoration: const InputDecoration(
-                              icon: Icon(Icons.fastfood),
-                              hintText: 'New amount',
-                              labelText: 'Amount'
-                            ),
-                            keyboardType: TextInputType.number,
-                            controller: _txtClaim,
-                            validator: (value) {
-                              if (_listingData['email'] == _email) {
-                                return 'Can\'t claim your own listing';
-                              }
-                              if (value.isEmpty) {
-                                return 'Cannot be blank';
-                              }
-                              if (int.parse(value) < 0) {
-                                return 'Cannot be negative';
-                              }
-                              if (int.parse(value) > _remaining) {
-                                return 'Not enough left';
-                              }
-                              if (int.parse(value) > _listingData['limit'] && _listingData['limit'] != 0) {
-                                return 'Limit is ${_listingData["limit"]}';
-                              }
-                              return null;
+                  key: _formKey,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      Flexible(
+                        child: TextFormField(
+                          decoration: const InputDecoration(
+                            icon: Icon(Icons.fastfood),
+                            hintText: 'New amount',
+                            labelText: 'Amount'
+                          ),
+                          keyboardType: TextInputType.number,
+                          controller: _txtClaim,
+                          validator: (value) {
+                            if (_listingData['email'] == _email) {
+                              return 'Can\'t claim your own listing';
                             }
-                          )
-                        ),
-                        SizedBox(width: 10.0),
-                        RaisedButton(
-                            child: Text('CLAIM'),
-                            onPressed: _submitForm
-                        ),
-                        SizedBox(width: 10.0),
-                        RaisedButton(
-                          child: Text('CANCEL'),
-                          onPressed: () {
-                            _showHome(context, 'Reservation deletion', 'If you confirm, your reservation will be deleted.');
-                            /*int _amt = int.parse(_txtClaim.text);
-                            if (_amt != 0) {
-                              _listingData['claimed'].remove(_email);
-                              _userData['claimed'].remove(_id);
-                              authHandler.userDataSet(_email, _userData);
-                              authHandler.listingSet(_id, _listingData).then((value) {
-
-                              });
-                            } else {
-                              Navigator.of(context).pop();
-                            }*/
+                            if (value.isEmpty) {
+                              return 'Cannot be blank';
+                            }
+                            if (int.parse(value) < 0) {
+                              return 'Cannot be negative';
+                            }
+                            if (int.parse(value) > _remaining) {
+                              return 'Not enough left';
+                            }
+                            if (int.parse(value) > _listingData['limit'] && _listingData['limit'] != 0) {
+                              return 'Limit is ${_listingData["limit"]}';
+                            }
+                            return null;
                           }
                         )
-                      ],
-                    )
+                      ),
+                      SizedBox(width: 10.0),
+                      RaisedButton(
+                          child: Text('CLAIM'),
+                          onPressed: _submitForm
+                      ),
+                      SizedBox(width: 10.0),
+                      RaisedButton(
+                        child: Text('CANCEL'),
+                        onPressed: () {
+                          int _amt = int.parse(_txtClaim.text);
+                          if (_amt != 0) {
+                            _showHome(context, 'Reservation deletion', 'If you confirm, your reservation will be deleted.');
+
+                            /*_listingData['claimed'].remove(_email);
+                            _userData['claimed'].remove(_id);
+                            authHandler.userDataSet(_email, _userData);
+                            authHandler.listingSet(_id, _listingData).then((value) {
+
+                            });
+                          } else {
+                            Navigator.of(context).pop();*/
+                          } else {
+                            Navigator.of(context).pop();
+                          }
+                        }
+                      )
+                    ],
+                  )
                 )
               ],
             )
@@ -196,17 +230,17 @@ class ViewOtherState extends State<ViewOther> {
 
         } else {
           return Scaffold(
-              appBar: AppBar(
-                title: Text('Leftovers'),
-              ),
-              body: Container(
-                  alignment: Alignment.center,
-                  child: SizedBox(
-                    child: CircularProgressIndicator(),
-                    width: 60,
-                    height: 60,
-                  )
-              )
+            appBar: AppBar(
+              title: Text('Leftovers'),
+            ),
+            body: Container(
+                alignment: Alignment.center,
+                child: SizedBox(
+                  child: CircularProgressIndicator(),
+                  width: 60,
+                  height: 60,
+                )
+            )
           );
         }
       }
