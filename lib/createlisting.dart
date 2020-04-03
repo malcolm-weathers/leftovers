@@ -17,14 +17,17 @@ class CreateListing extends StatefulWidget {
 }
 
 class CreateListingState extends State<CreateListing> {
-  String _email, _title, _descr;
+  String _email;
   File _image;
-  int _quantity, _limit;
   double _lat, _lon;
 
   final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
-  var txtLat = TextEditingController();
-  var txtLon = TextEditingController();
+  TextEditingController _txtTitle = TextEditingController();
+  TextEditingController _txtDescr = TextEditingController();
+  TextEditingController _txtQuantity = TextEditingController();
+  TextEditingController _txtLimit = TextEditingController();
+  TextEditingController txtLat = TextEditingController();
+  TextEditingController txtLon = TextEditingController();
   Auth authHandler = new Auth();
 
   DateTime _start = DateTime.now(), _finish = DateTime.now().add(Duration(hours: 1));
@@ -33,6 +36,7 @@ class CreateListingState extends State<CreateListing> {
   CreateListingState(String email) {
     _email = email;
     _setTimeStrings();
+    _txtLimit.text = '1';
   }
 
   void _submitForm() {
@@ -45,10 +49,10 @@ class CreateListingState extends State<CreateListing> {
 
       Map<String, dynamic> newListing = {
         'email': _email,
-        'title': _title,
-        'descr': _descr,
-        'quantity': _quantity,
-        'limit': _limit,
+        'title': _txtTitle.text,
+        'descr': _txtDescr.text,
+        'quantity': int.parse(_txtQuantity.text),
+        'limit': int.parse(_txtLimit.text),
         'location': {
           'latitude': _lat,
           'longitude': _lon
@@ -148,7 +152,8 @@ class CreateListingState extends State<CreateListing> {
   Future<void> _selectTimeT(BuildContext context) async {
     final TimeOfDay picked = await showTimePicker(
       context: context,
-      initialTime: TimeOfDay.now().replacing(hour: TimeOfDay.now().hour + 1),
+      initialTime: TimeOfDay.now().hour == 23 ? TimeOfDay.now().replacing(hour: 0) : TimeOfDay.now().replacing(hour: TimeOfDay.now().hour + 1)
+      //initialTime: TimeOfDay.now().replacing(hour: TimeOfDay.now().hour + 1),
     );
     if (picked != null) {
       setState(() {
@@ -179,8 +184,21 @@ class CreateListingState extends State<CreateListing> {
     });
   }
 
+  Future<int> _getLD() async {
+    MyLocation _myLocation = new MyLocation();
+    _myLocation.get().then((Map<String, double> _myLoc) {
+      txtLat.text = _myLoc['latitude'].toString();
+      txtLon.text = _myLoc['longitude'].toString();
+    });
+    return 0;
+  }
+
   @override
   Widget build(BuildContext context) {
+    return FutureBuilder<int>(
+        future: _getLD(),
+    builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
+    if (snapshot.connectionState == ConnectionState.done) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Create listing'),
@@ -202,11 +220,11 @@ class CreateListingState extends State<CreateListing> {
                     labelText: 'Listing title'
                   ),
                   textCapitalization: TextCapitalization.words,
+                  controller: _txtTitle,
                   validator: (value) {
                     if (value.isEmpty) {
                       return 'Cannot be blank';
                     }
-                    _title = value;
                     return null;
                   }
                 ),
@@ -219,11 +237,11 @@ class CreateListingState extends State<CreateListing> {
                   keyboardType: TextInputType.multiline,
                   maxLines: null,
                   textCapitalization: TextCapitalization.sentences,
+                  controller: _txtDescr,
                   validator: (value) {
                     if (value.isEmpty) {
                       return 'Cannot be blank';
                     }
-                    _descr = value;
                     return null;
                   }
                 ),
@@ -238,6 +256,7 @@ class CreateListingState extends State<CreateListing> {
                           labelText: 'Quantity',
                           hintText: '# of portions'
                         ),
+                        controller: _txtQuantity,
                         keyboardType: TextInputType.number,
                         validator: (value){
                           if (value == '') {
@@ -246,7 +265,6 @@ class CreateListingState extends State<CreateListing> {
                           if (int.parse(value) <= 0) {
                             return 'Cannot be 0 or negative';
                           }
-                          _quantity = int.parse(value);
                           return null;
                         },
                       ),
@@ -259,15 +277,15 @@ class CreateListingState extends State<CreateListing> {
                           hintText: 'Blank for no limit'
                         ),
                         keyboardType: TextInputType.number,
+                        controller: _txtLimit,
                         validator: (value) {
                           if (value == '') {
-                            _limit = 0;
+                            _txtLimit.text = '0';
                             return null;
                           }
                           if (int.parse(value) < 0) {
                             return 'Cannot be negative. Use 0 for no limit';
                           }
-                          _limit = int.parse(value);
                           return null;
                         },
                       )
@@ -337,12 +355,25 @@ class CreateListingState extends State<CreateListing> {
                     Text('$_startS'),
                     SizedBox(width: 15.0),
                     RaisedButton(
-                        child: Text('CHANGE'),
-                        onPressed: () {
-                          FocusScope.of(context).requestFocus(new FocusNode());
-                          _selectTime(context);
-                          _selectDate(context);
-                        }
+                      //child: Text('CHANGE'),
+                      onPressed: () {
+                        FocusScope.of(context).requestFocus(new FocusNode());
+                        _selectTime(context);
+                        _selectDate(context);
+                      },
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: <Widget>[
+                          Icon(
+                            Icons.access_time
+                          ),
+                          SizedBox(width: 5),
+                          Text(
+                            'CHANGE'
+                          )
+                        ],
+                      )
                     )
                   ],
                 ),
@@ -355,20 +386,48 @@ class CreateListingState extends State<CreateListing> {
                     Text('$_finishS'),
                     SizedBox(width: 15.0),
                     RaisedButton(
-                        child: Text('CHANGE'),
-                        onPressed: () {
-                          FocusScope.of(context).requestFocus(new FocusNode());
-                          _selectTimeT(context);
-                          _selectDateT(context);
-                        }
+                      onPressed: () {
+                        FocusScope.of(context).requestFocus(new FocusNode());
+                        _selectTimeT(context);
+                        _selectDateT(context);
+                      },
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: <Widget>[
+                          Icon(
+                              Icons.access_time
+                          ),
+                          SizedBox(width: 5),
+                          Text(
+                              'CHANGE'
+                          )
+                        ],
+                      )
                     )
                   ],
                 ),
                 SizedBox(height: 25.0),
-                IconButton(
-                  icon: Icon(Icons.camera_alt),
-                  onPressed: getImage,
+                RaisedButton(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      Icon(
+                          Icons.camera_alt
+                      ),
+                      SizedBox(width: 5),
+                      Text(
+                        'SELECT PHOTO'
+                      )
+                    ],
+                  ),
+                  onPressed: () {
+                    _formKey.currentState.save();
+                    getImage();
+                  }//getImage
                 ),
+                SizedBox(height:15),
                 Container(
                   child: _image == null ? Image.asset('assets/icon.png',height:150) : Image.file(_image,height:150)
                 ),
@@ -406,8 +465,24 @@ class CreateListingState extends State<CreateListing> {
         ]
       )
     );
+    } else {
+      return Scaffold(
+          appBar: AppBar(
+            title: Text('Leftovers'),
+          ),
+          body: Container(
+              alignment: Alignment.center,
+              child: SizedBox(
+                child: CircularProgressIndicator(),
+                width: 60,
+                height: 60,
+              )
+          )
+      );
+    }
+    }
+    );
   }
-
   void _showDialog(BuildContext context, String title, String body) {
     showDialog(
       context: context,

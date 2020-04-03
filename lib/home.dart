@@ -34,12 +34,14 @@ class HomeState extends State<Home> {
       _lat = _myLoc['latitude'];
       _lon = _myLoc['longitude'];
     });
+
     await authHandler.listingsGetByUser(_email).then((List<Map<String, dynamic>> _results) async {
       _listings = _results;
       for (var _x in _listings) {
         _x['img0'] = await authHandler.getImage0(_x['id']);
       }
     });
+
     await authHandler.userDataGet(_email).then((Map<String, dynamic> _data) async {
       _userData = _data;
       _claimedData.clear();
@@ -52,11 +54,12 @@ class HomeState extends State<Home> {
           print('variables are $_olat $_olon $_lat $_lon');
           double _dist = (_lat - _olat).abs() * 69.2 + (_lon - _olon).abs() * 69.2;
           _dist = double.parse(_dist.toStringAsFixed(1));
-          _data["distance"] = _dist;
+          _data['distance'] = _dist;
           await authHandler.getImage0(_x).then((var _y) {
             _data['img0'] = _y;
-            _claimedData.add(_data);
+
           });
+          _claimedData.add(_data);
         });
       }
     });
@@ -131,7 +134,7 @@ class HomeState extends State<Home> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: <Widget>[
                             Icon(Icons.shopping_cart),
-                            SizedBox(width: 13),
+                            SizedBox(width: 5),
                             Text('FIND FOOD')
                           ],
                         )

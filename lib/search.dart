@@ -30,6 +30,13 @@ class SearchState extends State<Search> {
     for (var _x in _inRange) {
       _x['img0'] = await authHandler.getImage0(_x['id']);
     }
+
+    MyLocation _myLocation = new MyLocation();
+    _myLocation.get().then((Map<String, double> _myLoc) {
+      _txtLat.text = _myLoc['latitude'].toString();
+      _txtLon.text = _myLoc['longitude'].toString();
+    });
+
     return 0;
   }
 
