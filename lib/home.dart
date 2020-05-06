@@ -6,6 +6,7 @@ import 'package:leftovers/config.dart';
 import 'package:leftovers/createlisting.dart';
 import 'package:leftovers/location.dart';
 import 'package:leftovers/main.dart';
+import 'package:leftovers/past.dart';
 import 'package:leftovers/search.dart';
 import 'package:leftovers/viewmine.dart';
 import 'package:leftovers/viewother.dart';
@@ -35,7 +36,7 @@ class HomeState extends State<Home> {
       _lon = _myLoc['longitude'];
     });
 
-    await authHandler.listingsGetByUser(_email).then((List<Map<String, dynamic>> _results) async {
+    await authHandler.listingsGetByUserFuture(_email).then((List<Map<String, dynamic>> _results) async {
       _listings = _results;
       for (var _x in _listings) {
         _x['img0'] = await authHandler.getImage0(_x['id']);
@@ -59,7 +60,12 @@ class HomeState extends State<Home> {
             _data['img0'] = _y;
 
           });
-          _claimedData.add(_data);
+          print(_data['time_t']);
+          print(DateTime.now().millisecondsSinceEpoch/1000);
+          if (_data['time_t'] > DateTime.now().millisecondsSinceEpoch / 1000) {
+            _claimedData.add(_data);
+          }
+
         });
       }
     });
@@ -139,6 +145,21 @@ class HomeState extends State<Home> {
                           ],
                         )
                           //child: Text('FIND FOOD')
+                      ),
+                      RaisedButton(
+                          onPressed: (){
+                            Navigator.push(context, new MaterialPageRoute(builder: (context) => new Past(_email)));
+                          },
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: <Widget>[
+                              Icon(Icons.assignment),
+                              SizedBox(width: 5),
+                              Text('PAST LISTINGS')
+                            ],
+                          )
+                        //child: Text('FIND FOOD')
                       ),
                       SizedBox(height: 20.0),
                       Text('Your posted listings:'),

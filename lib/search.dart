@@ -186,7 +186,7 @@ class SearchState extends State<Search> {
     final FormState form = _formKey.currentState;
     if (form.validate()) {
       form.save();
-      authHandler.listingsGetByLocation(double.parse(_txtLat.text), double.parse(_txtLon.text), double.parse(_txtRad.text)).then((List<dynamic> x){
+      authHandler.listingsGetByLocationNF(double.parse(_txtLat.text), double.parse(_txtLon.text), double.parse(_txtRad.text)).then((List<dynamic> x){
         _inRange = x;
         setState(() {});
       });

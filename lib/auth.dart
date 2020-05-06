@@ -65,6 +65,32 @@ class Auth {
     return _results;
   }
 
+  Future<List<Map<String, dynamic>>> listingsGetByUserFuture(String email) async {
+    QuerySnapshot _snap = await Firestore.instance.collection('listings').where('email', isEqualTo: email).getDocuments();
+    List<Map<String, dynamic>> _results = [];
+    _snap.documents.forEach((DocumentSnapshot _item) {
+      Map<String, dynamic> _data = _item.data;
+      _data['id'] = _item.documentID;
+      if (_data['time_t'] > DateTime.now().millisecondsSinceEpoch / 1000) {
+        _results.add(_data);
+      }
+    });
+    return _results;
+  }
+
+  Future<List<Map<String, dynamic>>> listingsGetByUserPast(String email) async {
+    QuerySnapshot _snap = await Firestore.instance.collection('listings').where('email', isEqualTo: email).getDocuments();
+    List<Map<String, dynamic>> _results = [];
+    _snap.documents.forEach((DocumentSnapshot _item) {
+      Map<String, dynamic> _data = _item.data;
+      _data['id'] = _item.documentID;
+      if (_data['time_t'] < DateTime.now().millisecondsSinceEpoch / 1000) {
+        _results.add(_data);
+      }
+    });
+    return _results;
+  }
+
   Future<List<Map<String, dynamic>>> listingsGetByLocation(double lat, double lon, double rad) async {
     double _lat0 = lat - (rad/69.2), _lat1 = lat + (rad/69.2);
 
@@ -77,6 +103,32 @@ class Auth {
       if (_dist < rad) {
         _data['distance'] = double.parse(_dist.toStringAsFixed(1));
         _results.add(_data);
+      } else {
+        print('$_dist is greater than $rad');
+      }
+    });
+    return _results;
+  }
+
+  Future<List<Map<String, dynamic>>> listingsGetByLocationNF(double lat, double lon, double rad) async {
+    double _lat0 = lat - (rad/69.2), _lat1 = lat + (rad/69.2);
+
+    QuerySnapshot _snap = await Firestore.instance.collection('listings').where('location.latitude', isGreaterThanOrEqualTo: _lat0).where('location.latitude', isLessThanOrEqualTo: _lat1).getDocuments();
+    List<Map<String, dynamic>> _results = [];
+    _snap.documents.forEach((DocumentSnapshot _item) {
+      Map<String, dynamic> _data = _item.data;
+      _data['id'] = _item.documentID;
+      double _dist = (lat - _data['location']['latitude']).abs() * 69.2 + (lon - _data['location']['longitude']).abs() * 69.2;
+      if (_dist < rad) {
+        _data['distance'] = double.parse(_dist.toStringAsFixed(1));
+        int _remaining = _data['quantity'];
+        _data['claimed'].forEach((String key, dynamic value) {
+          if (_data['claimed'][key]['status'] != 'cancelled')
+            _remaining -= value['no'];
+        });
+        if (_remaining > 0) {
+          _results.add(_data);
+        }
       } else {
         print('$_dist is greater than $rad');
       }

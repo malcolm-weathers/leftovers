@@ -1,11 +1,15 @@
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_google_places/flutter_google_places.dart';
+import 'package:google_maps_webservice/src/places.dart';
+import 'package:google_maps_webservice/geocoding.dart';
 
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart' as imagepicker;
 
 import 'package:leftovers/auth.dart';
+import 'package:geocoder/geocoder.dart';
 import 'package:leftovers/location.dart';
 
 class CreateListing extends StatefulWidget {
@@ -32,6 +36,8 @@ class CreateListingState extends State<CreateListing> {
 
   DateTime _start = DateTime.now(), _finish = DateTime.now().add(Duration(hours: 1));
   String _startS, _finishS;
+
+  static const kGoogleApiKey = "AIzaSyAP7rLVFgK8XuPPZyIHXHS03n1ogStutjY";
 
   CreateListingState(String email) {
     _email = email;
@@ -345,6 +351,30 @@ class CreateListingState extends State<CreateListing> {
                     });
                   },
                   child: Text('CURRENT LOCATION')
+                ),
+                RaisedButton(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      Icon(Icons.location_on),
+                      SizedBox(width: 5.0),
+                      Text('SELECT ADDRESS')
+                    ],
+                  ),
+                  onPressed: () async {
+                    Prediction p = await PlacesAutocomplete.show(
+                      context: context,
+                      apiKey: kGoogleApiKey,
+                      mode: Mode.fullscreen, // Mode.fullscreen
+                      language: 'en',
+                      components: [new Component(Component.country, 'en')],
+                      onError: (PlacesAutocompleteResponse response) {
+                        print(response.errorMessage);
+                      },
+                      location: null
+                    );
+                  }
                 ),
                 SizedBox(height: 7.5),
                 Text('Pickup start time:'),
