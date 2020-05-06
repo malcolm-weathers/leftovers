@@ -126,7 +126,7 @@ class Auth {
           if (_data['claimed'][key]['status'] != 'cancelled')
             _remaining -= value['no'];
         });
-        if (_remaining > 0) {
+        if (_remaining > 0 && _data['time_t'] > DateTime.now().millisecondsSinceEpoch/1000) {
           _results.add(_data);
         }
       } else {
