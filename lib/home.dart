@@ -58,7 +58,6 @@ class HomeState extends State<Home> {
           _data['distance'] = _dist;
           await authHandler.getImage0(_x).then((var _y) {
             _data['img0'] = _y;
-
           });
           print(_data['time_t']);
           print(DateTime.now().millisecondsSinceEpoch/1000);
